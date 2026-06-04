@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { CollegeService } from "@/services/collegeService";
 import { protectedApiWrapper } from "@/lib/api-wrapper";
-import { BadRequestError } from "@/lib/errors";
+import { saveCollegeSchema } from "@/lib/validation";
 
 export const GET = protectedApiWrapper(async (request, user) => {
   const savedColleges = await CollegeService.getSavedColleges(user.userId);
@@ -10,11 +10,9 @@ export const GET = protectedApiWrapper(async (request, user) => {
 
 export const POST = protectedApiWrapper(async (request, user) => {
   const body = await request.json();
-  const { collegeId } = body;
-
-  if (!collegeId) {
-    throw new BadRequestError("College ID is required");
-  }
+  
+  // Validate collegeId is a valid CUID
+  const { collegeId } = saveCollegeSchema.parse(body);
 
   const result = await CollegeService.saveCollege(user.userId, collegeId);
   return result;

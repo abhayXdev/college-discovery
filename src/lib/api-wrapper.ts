@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AppError, UnauthorizedError } from "./errors";
 import { AuthService } from "@/services/authService";
+import { ZodError } from "zod";
 
 type Handler = (
   request: NextRequest,
@@ -13,46 +14,71 @@ type ProtectedHandler = (
   context: any
 ) => Promise<NextResponse | any>;
 
+function handleError(error: any) {
+  console.error("API Error:", error);
+
+  if (error instanceof AppError) {
+    return NextResponse.json(
+      {
+        success: false,
+        data: null,
+        error: {
+          message: error.message,
+          code: error.constructor.name,
+        },
+      },
+      { status: error.statusCode }
+    );
+  }
+
+  if (error instanceof ZodError) {
+    return NextResponse.json(
+      {
+        success: false,
+        data: null,
+        error: {
+          message: "Validation failed",
+          details: error.errors.map(e => ({ path: e.path.join('.'), message: e.message })),
+          code: "ValidationError",
+        },
+      },
+      { status: 400 }
+    );
+  }
+
+  return NextResponse.json(
+    {
+      success: false,
+      data: null,
+      error: {
+        message: "An unexpected error occurred",
+        code: "InternalServerError",
+      },
+    },
+    { status: 500 }
+  );
+}
+
+function handleSuccess(result: any) {
+  if (result instanceof NextResponse) {
+    return result;
+  }
+
+  return NextResponse.json({
+    success: true,
+    data: result.data ?? result,
+    pagination: result.pagination ?? undefined,
+    error: null,
+  });
+}
+
 export function apiWrapper(handler: Handler) {
   return async (request: NextRequest, context: any) => {
     try {
       const result = await handler(request, context);
-
-      if (result instanceof NextResponse) {
-        return result;
-      }
-
-      return NextResponse.json({
-        success: true,
-        data: result.data || result,
-        meta: result.meta || undefined,
-      });
+      return handleSuccess(result);
     } catch (error: any) {
-      console.error("API Error:", error);
-
-      if (error instanceof AppError) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: {
-              message: error.message,
-              code: error.constructor.name,
-            },
-          },
-          { status: error.statusCode }
-        );
-      }
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            message: "An unexpected error occurred",
-            code: "InternalServerError",
-          },
-        },
-        { status: 500 }
-      );
+      return handleError(error);
     }
   };
 }
@@ -72,42 +98,9 @@ export function protectedApiWrapper(handler: ProtectedHandler) {
       }
 
       const result = await handler(request, decoded, context);
-
-      if (result instanceof NextResponse) {
-        return result;
-      }
-
-      return NextResponse.json({
-        success: true,
-        data: result.data || result,
-        meta: result.meta || undefined,
-      });
+      return handleSuccess(result);
     } catch (error: any) {
-      console.error("Protected API Error:", error);
-
-      if (error instanceof AppError) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: {
-              message: error.message,
-              code: error.constructor.name,
-            },
-          },
-          { status: error.statusCode }
-        );
-      }
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            message: "An unexpected error occurred",
-            code: "InternalServerError",
-          },
-        },
-        { status: 500 }
-      );
+      return handleError(error);
     }
   };
 }

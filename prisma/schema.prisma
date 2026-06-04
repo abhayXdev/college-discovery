@@ -8,33 +8,43 @@ datasource db {
 }
 
 model User {
-  id       String @id @default(cuid())
-  email    String @unique
-  password String
-
+  id            String         @id @default(cuid())
+  email         String         @unique
+  password      String
   savedColleges SavedCollege[]
+  reviews       Review[]
+  discussions   Discussion[]
+  answers       Answer[]
 }
 
 model College {
-  id          String @id @default(cuid())
+  id           String         @id @default(cuid())
+  name         String
+  city         String
+  state        String
+  instituteId  String         @unique
+  
+  rank         Int
+  score        Float
+  fees         Float          @default(0)
+  
+  // Rich Data
+  overview       String?      @default("Information coming soon.")
+  medianSalary   Float?       @default(0)
+  highestPackage Float?       @default(0)
+  rating         Float        @default(0)
 
-  instituteId String @unique
-  name        String
-  city        String
-  state       String
-
-  rank        Int
-  score       Float
-
-  tlr         Float
-  rpc         Float
-  go          Float
-  oi          Float
-  perception  Float
-  fees        Float @default(0) // Annual tuition fees in INR
+  // NIRF sub-scores
+  tlr          Float          @default(0)
+  rpc          Float          @default(0)
+  go           Float          @default(0)
+  oi           Float          @default(0)
+  perception   Float          @default(0)
 
   courses      Course[]
   savedByUsers SavedCollege[]
+  discussions  Discussion[]
+  reviews      Review[]
 
   @@index([name])
   @@index([city])
@@ -43,20 +53,53 @@ model College {
   @@index([fees])
 }
 
-model Course {
-  id        String @id @default(cuid())
-  name      String
+model Review {
+  id        String   @id @default(cuid())
+  content   String
+  rating    Int
+  createdAt DateTime @default(now())
 
+  collegeId String
+  college   College @relation(fields: [collegeId], references: [id])
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+}
+
+model Discussion {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+
+  collegeId String?
+  college   College? @relation(fields: [collegeId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  answers   Answer[]
+}
+
+model Answer {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+
+  discussionId String
+  discussion   Discussion @relation(fields: [discussionId], references: [id])
+  userId       String
+  user         User       @relation(fields: [userId], references: [id])
+}
+
+model Course {
+  id        String  @id @default(cuid())
+  name      String
   collegeId String
   college   College @relation(fields: [collegeId], references: [id])
 }
 
 model SavedCollege {
-  id String @id @default(cuid())
-
+  id        String  @id @default(cuid())
   userId    String
   collegeId String
-
-  user    User    @relation(fields: [userId], references: [id])
-  college College @relation(fields: [collegeId], references: [id])
+  college   College @relation(fields: [collegeId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
 }

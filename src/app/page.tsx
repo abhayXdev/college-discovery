@@ -12,17 +12,14 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [selectedForCompare, setSelectedForCompare] = useState<string[]>([]);
 
-  // Use a ref to track the current AbortController for in-flight requests
   const abortControllerRef = typeof window !== "undefined" ? { current: new AbortController() } : { current: null };
 
-  // 1. Initial Load: Fetch Recommendations
   useEffect(() => {
     apiRequest("/api/colleges/recommendations").then(res => setRecommendations(res.data)).catch(console.error);
     const saved = JSON.parse(localStorage.getItem("compare_ids") || "[]");
     setSelectedForCompare(saved);
   }, []);
 
-  // 2. Debounced Search Logic
   useEffect(() => {
     if (search.length > 0 && search.length < 2) return;
     const timeout = setTimeout(() => fetchColleges(), 400);
@@ -30,27 +27,20 @@ export default function HomePage() {
   }, [search, city, sortBy]);
 
   const fetchColleges = async () => {
-    // Cancel previous request if still in flight
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
+    if (abortControllerRef.current) abortControllerRef.current.abort();
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
     setLoading(true);
     try {
       const params = new URLSearchParams({ search, city, sortBy });
-      const res = await apiRequest(`/api/colleges?${params.toString()}`, {
-        signal: controller.signal
-      });
+      const res = await apiRequest(`/api/colleges?${params.toString()}`, { signal: controller.signal });
       setColleges(Array.isArray(res.data) ? res.data : []);
     } catch (err: any) {
-      if (err.name === "AbortError") return; // Ignore cancellations
+      if (err.name === "AbortError") return;
       setColleges([]);
     } finally {
-      if (!controller.signal.aborted) {
-        setLoading(false);
-      }
+      if (!controller.signal.aborted) setLoading(false);
     }
   };
 
@@ -59,7 +49,7 @@ export default function HomePage() {
     if (selectedForCompare.includes(id)) {
       next = selectedForCompare.filter(i => i !== id);
     } else {
-      if (selectedForCompare.length >= 3) return alert("Select up to 3 colleges max");
+      if (selectedForCompare.length >= 3) return alert("SYSTEM_LIMIT: 3_UNITS");
       next = [...selectedForCompare, id];
     }
     setSelectedForCompare(next);
@@ -67,37 +57,43 @@ export default function HomePage() {
   };
 
   const styles = {
-    container: { maxWidth: "1200px", margin: "0 auto", padding: "40px 20px" },
-    section: { marginBottom: "60px" },
-    grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "24px" },
-    card: { background: "#fff", border: "1px solid #f0f0f0", borderRadius: "16px", padding: "24px", transition: "all 0.2s ease", position: "relative" as const },
-    input: { padding: "12px", borderRadius: "8px", border: "1px solid #ddd", flex: 1, minWidth: "200px" },
-    tag: { padding: "4px 8px", borderRadius: "4px", fontSize: "12px", background: "#f0f7ff", color: "#007bff", fontWeight: 600 },
-    compareBtn: { padding: "8px 12px", borderRadius: "6px", border: "1px solid #ddd", background: "#fff", cursor: "pointer", fontSize: "13px" },
-    skeleton: { background: "#f0f0f0", borderRadius: "12px", height: "180px", width: "100%", animate: "pulse 1.5s infinite" }
+    container: { maxWidth: "1400px", margin: "0 auto", padding: "80px 40px" },
+    hero: { borderLeft: "15px solid #000", paddingLeft: "40px", marginBottom: "100px" },
+    title: { fontSize: "6rem", fontWeight: 900, lineHeight: 0.85, textTransform: "uppercase" as const, letterSpacing: "-0.05em", margin: "0 0 20px 0" },
+    subtitle: { fontSize: "24px", fontWeight: 800, color: "#000", textTransform: "uppercase" as const, letterSpacing: "0.1em" },
+    searchEngine: { border: "4px solid #000", display: "flex", flexWrap: "wrap" as const, marginBottom: "80px", background: "#000" },
+    input: { flex: 1, border: "none", padding: "25px 30px", fontSize: "20px", fontWeight: 800, outline: "none", background: "#fff", borderRight: "4px solid #000" },
+    select: { border: "none", padding: "0 30px", fontSize: "16px", fontWeight: 900, outline: "none", background: "#FACC15", cursor: "pointer", textTransform: "uppercase" as const },
+    grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(400px, 1fr))", gap: "40px" },
   };
 
   return (
     <div style={styles.container}>
-      {/* Floating Compare Bar */}
       {selectedForCompare.length > 0 && (
-        <div style={{ position: "fixed", bottom: "20px", left: "50%", transform: "translateX(-50%)", background: "#111", color: "#fff", padding: "15px 30px", borderRadius: "50px", display: "flex", gap: "20px", alignItems: "center", zIndex: 1000, boxShadow: "0 10px 25px rgba(0,0,0,0.3)" }}>
-          <span>{selectedForCompare.length} selected for comparison</span>
-          <Link href={`/compare?ids=${selectedForCompare.join(",")}`} style={{ color: "#fff", fontWeight: 700, textDecoration: "underline" }}>Compare Now</Link>
-          <button onClick={() => { setSelectedForCompare([]); localStorage.removeItem("compare_ids"); }} style={{ background: "none", border: "none", color: "#999", cursor: "pointer" }}>Clear</button>
+        <div style={{ position: "fixed", bottom: "0", left: "0", width: "100%", background: "#E11D48", color: "#fff", padding: "20px 40px", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 1000, borderTop: "6px solid #000" }}>
+          <span style={{ fontSize: "24px", fontWeight: 900, textTransform: "uppercase" }}>Compare_Register: {selectedForCompare.length}/3</span>
+          <Link href={`/compare?ids=${selectedForCompare.join(",")}`} style={{ background: "#000", color: "#fff", padding: "15px 40px", fontWeight: 900, textDecoration: "none", fontSize: "18px" }}>RUN_ANALYTICS →</Link>
         </div>
       )}
 
-      {/* Hero */}
-      <div style={{ textAlign: "center", marginBottom: "50px" }}>
-        <h1 style={{ fontSize: "3rem", fontWeight: 800 }}>Explore Top Colleges</h1>
-        <p style={{ color: "#666" }}>Live data from NIRF rankings with automated insights.</p>
+      <div style={styles.hero}>
+        <h1 style={styles.title}>National<br />Academic_Index</h1>
+        <p style={styles.subtitle}>Institutional performance audit // verified data system</p>
       </div>
 
-      {/* Recommendations */}
-      {recommendations && search === "" && (
-        <div style={styles.section}>
-          <h2 style={{ marginBottom: "20px" }}>⭐ Recommended for You</h2>
+      <div style={styles.searchEngine}>
+        <input placeholder="ENTER_INSTITUTION_NAME" value={search} onChange={e => setSearch(e.target.value)} style={styles.input} />
+        <input placeholder="REGION_ID" value={city} onChange={e => setCity(e.target.value)} style={styles.input} />
+        <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={styles.select}>
+          <option value="rank">SORT_BY_RANK</option>
+          <option value="fees">SORT_BY_FEES</option>
+          <option value="score">SORT_BY_SCORE</option>
+        </select>
+      </div>
+
+      {recommendations && !search && (
+        <div style={{ marginBottom: "80px" }}>
+          <h2 style={{ fontSize: "32px", fontWeight: 900, marginBottom: "30px", textTransform: "uppercase", borderBottom: "4px solid #000", paddingBottom: "10px" }}>Priority_Ranked_Entities</h2>
           <div style={styles.grid}>
             {recommendations.topRated.map((c: any) => (
               <CollegeCard key={c.id} college={c} isSelected={selectedForCompare.includes(c.id)} onToggle={() => toggleCompare(c.id)} />
@@ -106,24 +102,10 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Search Controls */}
-      <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "30px", background: "#fff", padding: "20px", borderRadius: "12px", border: "1px solid #eee" }}>
-        <input placeholder="Search name..." value={search} onChange={e => setSearch(e.target.value)} style={styles.input} />
-        <input placeholder="City..." value={city} onChange={e => setCity(e.target.value)} style={styles.input} />
-        <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ ...styles.input, flex: 0, minWidth: "150px" }}>
-          <option value="rank">Rank</option>
-          <option value="fees">Fees</option>
-          <option value="score">Score</option>
-        </select>
-      </div>
-
-      {/* Search Results */}
-      <div style={styles.section}>
-        <h2 style={{ marginBottom: "20px" }}>{search ? `Search results for "${search}"` : "All Colleges"}</h2>
+      <div>
+        <h2 style={{ fontSize: "32px", fontWeight: 900, marginBottom: "30px", textTransform: "uppercase", borderBottom: "4px solid #000", paddingBottom: "10px" }}>Institutional_Database</h2>
         {loading ? (
-          <div style={styles.grid}>
-            {[1,2,3].map(i => <div key={i} style={styles.skeleton} />)}
-          </div>
+          <div style={{ padding: "40px", fontSize: "24px", fontWeight: 900, background: "#000", color: "#fff", textAlign: "center" }}>FETCHING_RECORDS_STREAM...</div>
         ) : (
           <div style={styles.grid}>
             {colleges.map((c: any) => (
@@ -131,7 +113,6 @@ export default function HomePage() {
             ))}
           </div>
         )}
-        {!loading && colleges.length === 0 && <div style={{ textAlign: "center", padding: "50px", color: "#999" }}>No colleges found. Try a different search.</div>}
       </div>
     </div>
   );
@@ -139,21 +120,60 @@ export default function HomePage() {
 
 function CollegeCard({ college, isSelected, onToggle }: any) {
   return (
-    <div style={{ background: "#fff", border: isSelected ? "2px solid #007bff" : "1px solid #f0f0f0", borderRadius: "16px", padding: "24px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-      <div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
-          <span style={{ padding: "4px 8px", borderRadius: "4px", fontSize: "12px", background: "#f0f7ff", color: "#007bff", fontWeight: 600 }}>{college.state || "N/A"}</span>
-          <button onClick={onToggle} style={{ border: "1px solid #ddd", background: isSelected ? "#007bff" : "#fff", color: isSelected ? "#fff" : "#333", borderRadius: "6px", padding: "5px 10px", fontSize: "12px", cursor: "pointer" }}>
-            {isSelected ? "Selected" : "Select to Compare"}
-          </button>
+    <div style={{ 
+      border: "4px solid #000", 
+      background: isSelected ? "#FACC15" : "#fff", 
+      padding: "0", 
+      display: "flex", 
+      flexDirection: "column",
+      position: "relative"
+    }}>
+      <div style={{ background: "#000", color: "#fff", padding: "8px 20px", fontWeight: 900, fontSize: "12px", textTransform: "uppercase" }}>
+        {college.state || "UNKNOWN"} // {college.rating} RATING_INDEX
+      </div>
+      
+      <div style={{ padding: "30px" }}>
+        <h3 style={{ fontSize: "24px", fontWeight: 900, textTransform: "uppercase", margin: "0 0 10px 0", lineHeight: 1.1 }}>{college.name}</h3>
+        <p style={{ fontWeight: 700, color: "#000", margin: 0 }}>📍 {college.city}</p>
+        
+        <div style={{ marginTop: "30px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px", background: "#000", border: "2px solid #000" }}>
+          <div style={{ padding: "15px", background: "#fff", textAlign: "center" }}>
+            <div style={{ fontSize: "10px", fontWeight: 900, color: "#999" }}>FEE_STRUCTURE</div>
+            <div style={{ fontSize: "18px", fontWeight: 900 }}>₹{(college.fees / 1000).toFixed(0)}K</div>
+          </div>
+          <div style={{ padding: "15px", background: "#fff", textAlign: "center" }}>
+            <div style={{ fontSize: "10px", fontWeight: 900, color: "#999" }}>PLACEMENT_YIELD</div>
+            <div style={{ fontSize: "18px", fontWeight: 900, color: "#138808" }}>₹{(college.medianSalary / 100000).toFixed(1)}L</div>
+          </div>
         </div>
-        <h3 style={{ margin: "0 0 5px 0", fontSize: "18px" }}>{college.name}</h3>
-        <p style={{ margin: 0, color: "#666", fontSize: "14px" }}>{college.city}</p>
       </div>
-      <div style={{ marginTop: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span style={{ fontSize: "14px", fontWeight: 600 }}>Rank #{college.rank ?? "N/A"}</span>
-        <Link href={`/college/${college.id}`} style={{ fontSize: "14px", color: "#007bff", textDecoration: "none" }}>Details →</Link>
+
+      <div style={{ marginTop: "auto", display: "flex", borderTop: "4px solid #000" }}>
+        <div style={{ flex: 1, padding: "20px", background: "#000", color: "#fff", fontWeight: 900, textAlign: "center", fontSize: "18px" }}>
+          RANK #{college.rank}
+        </div>
+        <Link href={`/college/${college.id}`} style={{ flex: 1, padding: "20px", background: "#fff", color: "#000", fontWeight: 900, textAlign: "center", textDecoration: "none", borderLeft: "4px solid #000" }}>
+          AUDIT_PROFILE →
+        </Link>
       </div>
+
+      <button 
+        onClick={() => onToggle()} 
+        style={{ 
+          position: "absolute", 
+          top: "-15px", 
+          right: "20px", 
+          padding: "8px 15px", 
+          background: isSelected ? "#000" : "#E11D48", 
+          color: "#fff", 
+          border: "3px solid #000", 
+          fontWeight: 900, 
+          cursor: "pointer",
+          fontSize: "12px"
+        }}
+      >
+        {isSelected ? "REMOVE" : "ADD_TO_QUEUE"}
+      </button>
     </div>
   );
 }

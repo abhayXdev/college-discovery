@@ -9,6 +9,7 @@ export default function PredictorPage() {
     minRank: "1",
     maxRank: "1000",
     location: "",
+    exam: "JEE Mains",
   });
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -30,104 +31,78 @@ export default function PredictorPage() {
   };
 
   const styles = {
-    container: { maxWidth: "900px", margin: "40px auto", padding: "0 20px" },
-    formCard: { background: "#fff", padding: "30px", borderRadius: "16px", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)", border: "1px solid #f3f4f6", marginBottom: "40px" },
-    inputGroup: { marginBottom: "20px" },
-    label: { display: "block", fontSize: "14px", fontWeight: 600, color: "#374151", marginBottom: "8px" },
-    input: { width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid #d1d5db", fontSize: "16px", outline: "none" },
-    button: { width: "100%", padding: "14px", background: "#3b82f6", color: "white", border: "none", borderRadius: "8px", fontWeight: 700, cursor: "pointer", fontSize: "16px" },
-    grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "20px" },
-    resultCard: { background: "#fff", border: "1px solid #e5e7eb", borderRadius: "12px", padding: "20px", display: "flex", flexDirection: "column" as const },
-    scoreBadge: { alignSelf: "flex-start", padding: "4px 12px", borderRadius: "20px", fontSize: "14px", fontWeight: 700, marginBottom: "12px" },
+    container: { maxWidth: "1200px", margin: "0 auto", padding: "80px 40px" },
+    hero: { borderLeft: "15px solid #000", paddingLeft: "40px", marginBottom: "80px" },
+    title: { fontSize: "5rem", fontWeight: 900, lineHeight: 0.85, textTransform: "uppercase" as const, letterSpacing: "-0.05em", margin: "0 0 20px 0" },
+    formCard: { border: "4px solid #000", padding: "60px", background: "#fff", marginBottom: "80px", position: "relative" as const },
+    label: { display: "block", fontSize: "14px", fontWeight: 900, textTransform: "uppercase" as const, marginBottom: "10px" },
+    input: { width: "100%", padding: "20px", border: "4px solid #000", fontSize: "18px", fontWeight: 700, marginBottom: "30px", outline: "none", boxSizing: "border-box" as const },
+    button: { width: "100%", padding: "25px", background: "#000", color: "#fff", border: "none", fontSize: "20px", fontWeight: 900, textTransform: "uppercase" as const, cursor: "pointer" },
+    grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))", gap: "30px" },
+    matchBadge: { position: "absolute" as const, top: "-20px", left: "30px", background: "#FACC15", padding: "10px 20px", border: "4px solid #000", fontWeight: 900, fontSize: "14px" }
   };
 
   return (
     <div style={styles.container}>
-      <div style={{ textAlign: "center", marginBottom: "40px" }}>
-        <h1 style={{ fontSize: "2.5rem", fontWeight: 800, color: "#111827" }}>Admission Predictor</h1>
-        <p style={{ color: "#6b7280" }}>Tell us your preferences and we'll calculate your admission chances.</p>
+      <div style={styles.hero}>
+        <h1 style={styles.title}>Admission<br />Forecaster</h1>
+        <p style={{ fontSize: "20px", fontWeight: 700, color: "#666", textTransform: "uppercase" as const, letterSpacing: "0.1em" }}>Predictive Modeling // Placement Yield Analysis</p>
       </div>
 
       <div style={styles.formCard}>
+        <div style={{ position: "absolute", top: "-25px", left: "40px", background: "#000", color: "#fff", padding: "10px 30px", border: "4px solid #000", fontWeight: 900 }}>PARAMETER_INPUT_PROTOCOL</div>
         <form onSubmit={handlePredict}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Annual Budget (₹)</label>
-              <input 
-                type="number" 
-                placeholder="e.g. 200000" 
-                required 
-                value={form.budget}
-                onChange={e => setForm({...form, budget: e.target.value})}
-                style={styles.input} 
-              />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "40px" }}>
+            <div>
+              <label style={styles.label}>Academic_Assessment_Exam</label>
+              <select style={styles.input} value={form.exam} onChange={e => setForm({...form, exam: e.target.value})}>
+                <option>JEE Mains</option>
+                <option>JEE Advanced</option>
+                <option>BITSAT</option>
+                <option>GATE</option>
+                <option>MET</option>
+              </select>
             </div>
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Preferred Location (Optional)</label>
-              <input 
-                type="text" 
-                placeholder="City or State" 
-                value={form.location}
-                onChange={e => setForm({...form, location: e.target.value})}
-                style={styles.input} 
-              />
+            <div>
+              <label style={styles.label}>Verified_National_Rank</label>
+              <input type="number" placeholder="ENTER_RANK_VALUE" style={styles.input} onChange={e => setForm({...form, maxRank: e.target.value})} />
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Min Rank</label>
-              <input 
-                type="number" 
-                value={form.minRank}
-                onChange={e => setForm({...form, minRank: e.target.value})}
-                style={styles.input} 
-              />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "40px" }}>
+            <div>
+              <label style={styles.label}>Max_Capital_Outlay (₹)</label>
+              <input type="number" placeholder="ENTER_BUDGET_CAP" style={styles.input} value={form.budget} onChange={e => setForm({...form, budget: e.target.value})} />
             </div>
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Max Rank</label>
-              <input 
-                type="number" 
-                value={form.maxRank}
-                onChange={e => setForm({...form, maxRank: e.target.value})}
-                style={styles.input} 
-              />
+            <div>
+              <label style={styles.label}>Preferred_Deployment_Region</label>
+              <input type="text" placeholder="STATE_OR_CITY" style={styles.input} value={form.location} onChange={e => setForm({...form, location: e.target.value})} />
             </div>
           </div>
 
           <button type="submit" disabled={loading} style={styles.button}>
-            {loading ? "Calculating Chances..." : "Predict Best Matches"}
+            {loading ? "PROCESSING_ALGORITHM..." : "GENERATE_PREDICTIONS →"}
           </button>
         </form>
-        {error && <p style={{ color: "#ef4444", marginTop: "15px", textAlign: "center" }}>{error}</p>}
       </div>
 
       {results.length > 0 && (
-        <div>
-          <h2 style={{ marginBottom: "20px", fontSize: "20px", fontWeight: 700 }}>Recommended Matches</h2>
-          <div style={styles.grid}>
-            {results.map((c: any) => (
-              <div key={c.id} style={styles.resultCard}>
-                <div style={{ 
-                  ...styles.scoreBadge, 
-                  background: c.matchScore > 75 ? "#dcfce7" : "#fef9c3", 
-                  color: c.matchScore > 75 ? "#166534" : "#854d0e" 
-                }}>
-                  {c.matchScore}/100 Match Score
-                </div>
-                <h3 style={{ margin: "0 0 8px 0", fontSize: "18px" }}>{c.name}</h3>
-                <p style={{ margin: "0", color: "#6b7280", fontSize: "14px" }}>{c.city}, {c.state}</p>
-                
-                <div style={{ marginTop: "auto", paddingTop: "15px" }}>
-                  <div style={{ fontSize: "14px", color: "#374151" }}>Rank: <strong>#{c.rank}</strong></div>
-                  <div style={{ fontSize: "14px", color: "#059669", fontWeight: 600 }}>Fees: ₹{c.fees?.toLocaleString()}</div>
-                  <Link href={`/college/${c.id}`} style={{ display: "block", marginTop: "12px", color: "#3b82f6", textDecoration: "none", fontWeight: 600, fontSize: "14px" }}>
-                    View Profile →
-                  </Link>
-                </div>
+        <div style={styles.grid}>
+          {results.map((c: any) => (
+            <div key={c.id} style={{ border: "4px solid #000", padding: "40px", position: "relative" as const, background: "#fff" }}>
+              <div style={styles.matchBadge}>{c.matchScore}% MATCH_PROBABILITY</div>
+              <h3 style={{ fontSize: "24px", fontWeight: 900, textTransform: "uppercase", margin: "20px 0 10px 0" }}>{c.name}</h3>
+              <p style={{ fontWeight: 700, color: "#666", marginBottom: "30px" }}>LOC: {c.city}, {c.state}</p>
+              
+              <div style={{ padding: "20px", border: "3px solid #000", background: "#f8fafc", marginBottom: "30px" }}>
+                <div style={{ fontSize: "12px", fontWeight: 900, color: "#999" }}>THRESHOLD_RANK</div>
+                <div style={{ fontSize: "20px", fontWeight: 900 }}>#{c.rank}</div>
+                <div style={{ fontSize: "12px", fontWeight: 900, color: "#138808", marginTop: "10px" }}>ANNUAL_FEES: ₹{c.fees.toLocaleString()}</div>
               </div>
-            ))}
-          </div>
+              
+              <Link href={`/college/${c.id}`} style={{ display: "block", background: "#000", color: "#fff", padding: "15px", textAlign: "center", textDecoration: "none", fontWeight: 900 }}>AUDIT_PROFILE</Link>
+            </div>
+          ))}
         </div>
       )}
     </div>

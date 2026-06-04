@@ -8,6 +8,7 @@ export default function CollegeDetailPage({ params }: { params: Promise<{ id: st
   const [college, setCollege] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
     apiRequest(`/api/colleges/${id}`)
@@ -27,7 +28,7 @@ export default function CollegeDetailPage({ params }: { params: Promise<{ id: st
         method: "POST",
         body: JSON.stringify({ collegeId: id }),
       });
-      alert("College saved successfully!");
+      alert("DATA_COMMITTED_TO_WATCHLIST");
     } catch (err: any) {
       alert(err.message);
     } finally {
@@ -35,70 +36,96 @@ export default function CollegeDetailPage({ params }: { params: Promise<{ id: st
     }
   };
 
-  if (loading) return <p>Loading...</p>;
-  if (!college) return <p style={{ textAlign: "center", padding: "40px" }}>College not found.</p>;
+  if (loading) return <div style={{ padding: "100px", fontSize: "32px", fontWeight: 900, textAlign: "center" }}>READING_RECORD...</div>;
+  if (!college) return <div style={{ padding: "100px", fontSize: "32px", fontWeight: 900, textAlign: "center" }}>RECORD_NOT_FOUND</div>;
 
-  const detailStyles = {
-    container: { maxWidth: "800px", margin: "40px auto", background: "#fff", padding: "40px", borderRadius: "16px", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)", border: "1px solid #f3f4f6" },
-    title: { fontSize: "32px", fontWeight: 800, color: "#111827", marginBottom: "20px" },
-    grid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "30px" },
-    statBox: { padding: "15px", background: "#f9fafb", borderRadius: "10px", border: "1px solid #e5e7eb" },
-    label: { fontSize: "12px", color: "#6b7280", textTransform: "uppercase" as const, fontWeight: 600, letterSpacing: "0.05em" },
-    value: { fontSize: "18px", color: "#111827", fontWeight: 700, marginTop: "4px" },
-    scoreList: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "15px", padding: 0, listStyle: "none" }
+  const styles = {
+    container: { maxWidth: "1200px", margin: "0 auto", padding: "60px 20px" },
+    hero: { border: "6px solid #000", padding: "60px", marginBottom: "40px", position: "relative" as const },
+    title: { fontSize: "4rem", fontWeight: 900, textTransform: "uppercase" as const, lineHeight: 0.9, marginBottom: "20px" },
+    rankBox: { position: "absolute" as const, top: "-30px", right: "60px", background: "#E11D48", color: "#fff", padding: "20px 40px", fontWeight: 900, fontSize: "24px", border: "4px solid #000" },
+    tabGroup: { display: "flex", flexWrap: "wrap" as const, gap: "0", marginBottom: "40px", border: "4px solid #000" },
+    tab: (active: boolean) => ({ flex: 1, padding: "20px", textAlign: "center" as const, cursor: "pointer", fontWeight: 900, fontSize: "16px", textTransform: "uppercase" as const, background: active ? "#000" : "#fff", color: active ? "#fff" : "#000", borderRight: "4px solid #000", transition: "none" }),
+    content: { border: "4px solid #000", padding: "60px" },
+    statGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "10px", background: "#000" },
+    statBox: { padding: "40px", background: "#FACC15", textAlign: "center" as const },
+    saveBtn: { background: "#000", color: "#fff", border: "none", padding: "20px 40px", fontWeight: 900, cursor: "pointer", fontSize: "18px", textTransform: "uppercase" as const }
   };
 
   return (
-    <div style={detailStyles.container}>
-      <h1 style={detailStyles.title}>{college.name || "Unnamed College"}</h1>
-      
-      <div style={detailStyles.grid}>
-        <div style={detailStyles.statBox}>
-          <div style={detailStyles.label}>Location</div>
-          <div style={detailStyles.value}>{college.city || "N/A"}, {college.state || "N/A"}</div>
-        </div>
-        <div style={detailStyles.statBox}>
-          <div style={detailStyles.label}>NIRF Rank</div>
-          <div style={detailStyles.value}>#{college.rank ?? "N/A"}</div>
-        </div>
-        <div style={detailStyles.statBox}>
-          <div style={detailStyles.label}>Annual Fees</div>
-          <div style={detailStyles.value}>₹{typeof college.fees === "number" ? college.fees.toLocaleString() : "N/A"}</div>
-        </div>
-        <div style={detailStyles.statBox}>
-          <div style={detailStyles.label}>Overall Score</div>
-          <div style={detailStyles.value}>{college.score ?? "N/A"}</div>
+    <div style={styles.container}>
+      <div style={styles.hero}>
+        <div style={styles.rankBox}>OFFICIAL_RANK: #{college.rank}</div>
+        <h1 style={styles.title}>{college.name}</h1>
+        <p style={{ fontSize: "24px", fontWeight: 700, color: "#666" }}>LOCATION: {college.city}, {college.state} // {college.rating} STAR_RATING</p>
+        
+        <div style={{ marginTop: "40px" }}>
+          <button onClick={handleSave} disabled={saving} style={styles.saveBtn}>
+            {saving ? "EXECUTING..." : "ADD_TO_COLLECTION"}
+          </button>
         </div>
       </div>
 
-      <button
-        onClick={handleSave}
-        disabled={saving}
-        style={{ width: "100%", padding: "14px", background: "#059669", color: "white", border: "none", borderRadius: "10px", fontWeight: 700, cursor: "pointer", transition: "background 0.2s" }}
-        onMouseEnter={(e) => e.currentTarget.style.background = "#047857"}
-        onMouseLeave={(e) => e.currentTarget.style.background = "#059669"}
-      >
-        {saving ? "Processing..." : "Save to Favorites"}
-      </button>
-
-      <h2 style={{ marginTop: "40px", fontSize: "20px", fontWeight: 700, color: "#111827", borderBottom: "2px solid #f3f4f6", paddingBottom: "10px", marginBottom: "20px" }}>
-        NIRF Parameter Breakdown
-      </h2>
-      <ul style={detailStyles.scoreList}>
-        {[
-          { label: "TLR", val: college.tlr },
-          { label: "RPC", val: college.rpc },
-          { label: "GO", val: college.go },
-          { label: "OI", val: college.oi },
-          { label: "Perception", val: college.perception }
-        ].map((item) => (
-          <li key={item.label} style={detailStyles.statBox}>
-            <div style={detailStyles.label}>{item.label}</div>
-            <div style={detailStyles.value}>{item.val ?? "0.0"}</div>
-          </li>
+      <div style={styles.tabGroup}>
+        {["overview", "courses", "placements", "reviews"].map(tab => (
+          <div key={tab} style={styles.tab(activeTab === tab)} onClick={() => setActiveTab(tab)}>
+            {tab}
+          </div>
         ))}
-      </ul>
+      </div>
+
+      <div style={styles.content}>
+        {activeTab === "overview" && (
+          <div>
+            <h2 style={{ fontSize: "32px", fontWeight: 900, marginBottom: "30px", textTransform: "uppercase" }}>Analysis_Report</h2>
+            <p style={{ fontSize: "20px", lineHeight: 1.6, color: "#333", fontWeight: 600 }}>{college.overview}</p>
+            
+            <div style={{ marginTop: "60px", ...styles.statGrid }}>
+              <div style={styles.statBox}>
+                <div style={{ fontSize: "12px", fontWeight: 900 }}>PERFORMANCE_INDEX</div>
+                <div style={{ fontSize: "42px", fontWeight: 900 }}>{college.score}</div>
+              </div>
+              <div style={styles.statBox}>
+                <div style={{ fontSize: "12px", fontWeight: 900 }}>CAPITAL_OUTLAY</div>
+                <div style={{ fontSize: "42px", fontWeight: 900 }}>₹{college.fees.toLocaleString()}</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "courses" && (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+            {college.courses?.map((c: any) => (
+              <div key={c.id} style={{ border: "4px solid #000", padding: "30px", fontWeight: 900, fontSize: "18px", textTransform: "uppercase" }}>{c.name}</div>
+            ))}
+          </div>
+        )}
+
+        {activeTab === "placements" && (
+          <div style={{ ...styles.statGrid }}>
+            <div style={{ ...styles.statBox, background: "#138808", color: "#fff" }}>
+              <div style={{ fontSize: "12px", fontWeight: 900 }}>MEDIAN_YIELD</div>
+              <div style={{ fontSize: "42px", fontWeight: 900 }}>₹{(college.medianSalary / 100000).toFixed(1)} LPA</div>
+            </div>
+            <div style={{ ...styles.statBox, background: "#000", color: "#fff" }}>
+              <div style={{ fontSize: "12px", fontWeight: 900 }}>PEAK_RESULT</div>
+              <div style={{ fontSize: "42px", fontWeight: 900 }}>₹{(college.highestPackage / 10000000).toFixed(1)} CR</div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "reviews" && (
+          <div>
+            {college.reviews?.map((r: any) => (
+              <div key={r.id} style={{ borderBottom: "4px solid #000", padding: "30px 0" }}>
+                <div style={{ fontSize: "20px", fontWeight: 900, marginBottom: "10px" }}>GRADE: {r.rating}/5</div>
+                <p style={{ fontSize: "18px", fontWeight: 600 }}>{r.content}</p>
+                <div style={{ fontSize: "12px", fontWeight: 900, color: "#999", marginTop: "20px" }}>AUDIT_BY: {r.user.email} // {new Date(r.createdAt).toLocaleDateString()}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-

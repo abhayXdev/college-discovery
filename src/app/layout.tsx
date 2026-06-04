@@ -16,57 +16,90 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body style={{ margin: 0, fontFamily: "sans-serif" }}>
+      <body style={{ margin: 0, fontFamily: "'Inter', 'Helvetica', sans-serif", background: "#fff", color: "#000" }}>
         <nav
           style={{
             display: "flex",
-            gap: "20px",
-            padding: "15px 20px",
-            borderBottom: "1px solid #ccc",
-            background: "#f8f9fa",
+            padding: "0",
+            borderBottom: "6px solid #000",
+            background: "#fff",
+            height: "80px",
+            alignItems: "center"
           }}
         >
-          <Link href="/" style={{ fontWeight: "bold", textDecoration: "none", color: "#333" }}>
-            CollegeDiscovery
+          <Link href="/" style={{ 
+            height: "100%", 
+            display: "flex", 
+            alignItems: "center", 
+            padding: "0 40px", 
+            background: "#000", 
+            color: "#fff", 
+            fontWeight: 900, 
+            textDecoration: "none", 
+            fontSize: "24px",
+            letterSpacing: "-0.05em",
+            textTransform: "uppercase"
+          }}>
+            COLLEGE_ENGINE
           </Link>
           <div style={{ flex: 1 }} />
-          <Link href="/predictor" style={{ textDecoration: "none", color: "#007bff", marginRight: "20px" }}>
-            Predictor
-          </Link>
-          {isAuth ? (
-            <>
-              <Link href="/saved" style={{ textDecoration: "none", color: "#007bff" }}>
-                Saved
-              </Link>
-              <button
-                onClick={() => authHelper.logout()}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#dc3545",
-                  cursor: "pointer",
-                  padding: 0,
-                  fontSize: "16px",
-                }}
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <Link href="/login" style={{ textDecoration: "none", color: "#007bff" }}>
-                Login
-              </Link>
-              <Link href="/register" style={{ textDecoration: "none", color: "#007bff" }}>
-                Register
-              </Link>
-            </>
-          )}
+          <div style={{ display: "flex", height: "100%" }}>
+            <NavLink href="/predictor">Predictor</NavLink>
+            <NavLink href="/discussions">Community</NavLink>
+            {isAuth ? (
+              <>
+                <NavLink href="/saved">Watchlist</NavLink>
+                <button
+                  onClick={() => authHelper.logout()}
+                  style={{
+                    height: "100%",
+                    border: "none",
+                    borderLeft: "3px solid #000",
+                    background: "#E11D48",
+                    color: "#fff",
+                    cursor: "pointer",
+                    padding: "0 30px",
+                    fontSize: "14px",
+                    fontWeight: 900,
+                    textTransform: "uppercase"
+                  }}
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <NavLink href="/login">Login</NavLink>
+                <NavLink href="/register" highlight>Register</NavLink>
+              </>
+            )}
+          </div>
         </nav>
-        <main style={{ padding: "20px", maxWidth: "1000px", margin: "0 auto" }}>
+        <main style={{ minHeight: "calc(100vh - 86px)" }}>
           {children}
         </main>
       </body>
     </html>
+  );
+}
+
+function NavLink({ href, children, highlight }: { href: string, children: React.ReactNode, highlight?: boolean }) {
+  return (
+    <Link href={href} style={{ 
+      height: "100%", 
+      display: "flex", 
+      alignItems: "center", 
+      padding: "0 30px", 
+      textDecoration: "none", 
+      color: highlight ? "#fff" : "#000", 
+      background: highlight ? "#000" : "transparent",
+      fontWeight: 900, 
+      fontSize: "14px",
+      textTransform: "uppercase",
+      borderLeft: "3px solid #000",
+      letterSpacing: "0.05em"
+    }}>
+      {children}
+    </Link>
   );
 }
