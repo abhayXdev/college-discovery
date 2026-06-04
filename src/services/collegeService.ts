@@ -27,15 +27,32 @@ export class CollegeService {
 
     const skip = (page - 1) * limit;
 
-    const where: Prisma.CollegeWhereInput = {
-      AND: [
-        search ? { name: { contains: search, mode: "insensitive" } } : {},
-        city ? { city: { equals: city, mode: "insensitive" } } : {},
-        state ? { state: { equals: state, mode: "insensitive" } } : {},
-        { fees: { gte: minFees } },
-        { fees: { lte: maxFees === Infinity ? undefined : maxFees } },
-      ],
-    };
+    // 1. Conditionally build the where clause
+    // This prevents passing 'undefined' or empty objects into Prisma filters
+    const conditions: Prisma.CollegeWhereInput[] = [];
+
+    if (search) {
+      conditions.push({ name: { contains: search, mode: "insensitive" } });
+    }
+    if (city) {
+      conditions.push({ city: { equals: city, mode: "insensitive" } });
+    }
+    if (state) {
+      conditions.push({ state: { equals: state, mode: "insensitive" } });
+    }
+
+    // Handle Fees filtering safely
+    if (minFees > 0 || (maxFees !== undefined && maxFees !== Infinity)) {
+      const feesFilter: Prisma.FloatFilter = {};
+      if (minFees > 0) feesFilter.gte = minFees;
+      if (maxFees !== undefined && maxFees !== Infinity) feesFilter.lte = maxFees;
+      
+      if (Object.keys(feesFilter).length > 0) {
+        conditions.push({ fees: feesFilter });
+      }
+    }
+
+    const where: Prisma.CollegeWhereInput = conditions.length > 0 ? { AND: conditions } : {};
 
     const [colleges, totalCount] = await Promise.all([
       prisma.college.findMany({
