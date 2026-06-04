@@ -1,18 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 
-/**
- * THE ANALOGY: The "Head Chef"
- * The Service Layer is where the actual cooking happens. 
- * API Routes are just "Waiters" who take orders and deliver food.
- * The Waiter doesn't need to know how to chop vegetables; only the Chef (Service) does.
- */
 export class CollegeService {
-  /**
-   * BACKEND WHY: Decoupling logic from the transport layer (HTTP).
-   * By putting database logic here, we can reuse it in CLI scripts, cron jobs, 
-   * or multiple API routes without duplicating code.
-   */
   static async searchColleges(params: {
     search?: string;
     city?: string;
@@ -99,6 +88,39 @@ export class CollegeService {
         rank: "asc"
       },
       take: 10,
+    });
+  }
+
+  static async saveCollege(userId: string, collegeId: string) {
+    // Check if college exists
+    const college = await prisma.college.findUnique({ where: { id: collegeId } });
+    if (!college) {
+      throw new NotFoundError("College not found");
+    }
+
+    // Check if already saved
+    const existing = await prisma.savedCollege.findFirst({
+      where: { userId, collegeId },
+    });
+
+    if (existing) {
+      return existing;
+    }
+
+    return prisma.savedCollege.create({
+      data: {
+        userId,
+        collegeId,
+      },
+    });
+  }
+
+  static async getSavedColleges(userId: string) {
+    return prisma.savedCollege.findMany({
+      where: { userId },
+      include: {
+        college: true,
+      },
     });
   }
 }
