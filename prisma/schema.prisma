@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id       String @id @default(cuid())
+  email    String @unique
+  password String
+
+  savedColleges SavedCollege[]
+}
+
+model College {
+  id          String @id @default(cuid())
+
+  instituteId String @unique
+  name        String
+
+  city        String
+  state       String
+
+  rank        Int
+  score       Float
+
+  tlr         Float
+  rpc         Float
+  go          Float
+  oi          Float
+  perception  Float
+
+  courses      Course[]
+  savedByUsers SavedCollege[]
+}
+
+model Course {
+  id        String @id @default(cuid())
+  name      String
+
+  collegeId String
+  college   College @relation(fields: [collegeId], references: [id])
+}
+
+model SavedCollege {
+  id String @id @default(cuid())
+
+  userId    String
+  collegeId String
+
+  user    User    @relation(fields: [userId], references: [id])
+  college College @relation(fields: [collegeId], references: [id])
+}
