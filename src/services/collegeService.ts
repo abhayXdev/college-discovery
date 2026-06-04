@@ -1,0 +1,104 @@
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/generated/prisma/client";
+
+/**
+ * THE ANALOGY: The "Head Chef"
+ * The Service Layer is where the actual cooking happens. 
+ * API Routes are just "Waiters" who take orders and deliver food.
+ * The Waiter doesn't need to know how to chop vegetables; only the Chef (Service) does.
+ */
+export class CollegeService {
+  /**
+   * BACKEND WHY: Decoupling logic from the transport layer (HTTP).
+   * By putting database logic here, we can reuse it in CLI scripts, cron jobs, 
+   * or multiple API routes without duplicating code.
+   */
+  static async searchColleges(params: {
+    search?: string;
+    city?: string;
+    state?: string;
+    minFees?: number;
+    maxFees?: number;
+    sortBy?: "fees" | "rank" | "score";
+    sortOrder?: "asc" | "desc";
+    page?: number;
+    limit?: number;
+  }) {
+    const { 
+      search = "", 
+      city = "", 
+      state = "", 
+      minFees = 0, 
+      maxFees = Infinity,
+      sortBy = "rank",
+      sortOrder = "asc",
+      page = 1, 
+      limit = 10 
+    } = params;
+
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.CollegeWhereInput = {
+      AND: [
+        search ? { name: { contains: search, mode: "insensitive" } } : {},
+        city ? { city: { equals: city, mode: "insensitive" } } : {},
+        state ? { state: { equals: state, mode: "insensitive" } } : {},
+        { fees: { gte: minFees } },
+        { fees: { lte: maxFees === Infinity ? undefined : maxFees } },
+      ],
+    };
+
+    const [colleges, totalCount] = await Promise.all([
+      prisma.college.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { [sortBy]: sortOrder },
+      }),
+      prisma.college.count({ where }),
+    ]);
+
+    return {
+      colleges,
+      totalCount,
+      totalPages: Math.ceil(totalCount / limit),
+    };
+  }
+
+  static async getCollegeById(id: string) {
+    return prisma.college.findUnique({
+      where: { id },
+      include: {
+        courses: true,
+      },
+    });
+  }
+
+  static async compareColleges(ids: string[]) {
+    return prisma.college.findMany({
+      where: {
+        id: { in: ids },
+      },
+      include: {
+        courses: {
+          take: 10, // Avoid N+1 and massive payloads
+        },
+      },
+    });
+  }
+
+  static async predictColleges(score: number) {
+    return prisma.college.findMany({
+      where: {
+        score: {
+          lte: score,
+          gte: Math.max(0, score - 10),
+        },
+      },
+      orderBy: {
+        rank: "asc"
+      },
+      take: 10,
+    });
+  }
+}

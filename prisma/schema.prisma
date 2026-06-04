@@ -31,6 +31,7 @@ model College {
   go          Float
   oi          Float
   perception  Float
+  fees        Float @default(0) // Annual tuition fees in INR
 
   courses      Course[]
   savedByUsers SavedCollege[]

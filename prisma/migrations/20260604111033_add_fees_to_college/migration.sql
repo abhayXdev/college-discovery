@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "College" ADD COLUMN     "fees" DOUBLE PRECISION NOT NULL DEFAULT 0;
