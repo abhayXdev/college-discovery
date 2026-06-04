@@ -12,10 +12,12 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [selectedForCompare, setSelectedForCompare] = useState<string[]>([]);
 
+  // Use a ref to track the current AbortController for in-flight requests
+  const abortControllerRef = typeof window !== "undefined" ? { current: new AbortController() } : { current: null };
+
   // 1. Initial Load: Fetch Recommendations
   useEffect(() => {
     apiRequest("/api/colleges/recommendations").then(res => setRecommendations(res.data)).catch(console.error);
-    // Restore comparison from localStorage
     const saved = JSON.parse(localStorage.getItem("compare_ids") || "[]");
     setSelectedForCompare(saved);
   }, []);
@@ -23,20 +25,32 @@ export default function HomePage() {
   // 2. Debounced Search Logic
   useEffect(() => {
     if (search.length > 0 && search.length < 2) return;
-    const timeout = setTimeout(fetchColleges, 400);
+    const timeout = setTimeout(() => fetchColleges(), 400);
     return () => clearTimeout(timeout);
   }, [search, city, sortBy]);
 
   const fetchColleges = async () => {
+    // Cancel previous request if still in flight
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setLoading(true);
     try {
       const params = new URLSearchParams({ search, city, sortBy });
-      const res = await apiRequest(`/api/colleges?${params.toString()}`);
+      const res = await apiRequest(`/api/colleges?${params.toString()}`, {
+        signal: controller.signal
+      });
       setColleges(Array.isArray(res.data) ? res.data : []);
-    } catch (err) {
+    } catch (err: any) {
+      if (err.name === "AbortError") return; // Ignore cancellations
       setColleges([]);
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) {
+        setLoading(false);
+      }
     }
   };
 
