@@ -5,181 +5,141 @@ import Link from "next/link";
 
 export default function HomePage() {
   const [colleges, setColleges] = useState([]);
+  const [recommendations, setRecommendations] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("");
   const [sortBy, setSortBy] = useState("rank");
   const [loading, setLoading] = useState(false);
+  const [selectedForCompare, setSelectedForCompare] = useState<string[]>([]);
 
-  // Live Search Logic: Debounce the search input to avoid hitting the API on every keystroke
+  // 1. Initial Load: Fetch Recommendations
   useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      fetchColleges();
-    }, 500); // 500ms delay
+    apiRequest("/api/colleges/recommendations").then(res => setRecommendations(res.data)).catch(console.error);
+    // Restore comparison from localStorage
+    const saved = JSON.parse(localStorage.getItem("compare_ids") || "[]");
+    setSelectedForCompare(saved);
+  }, []);
 
-    return () => clearTimeout(delayDebounceFn);
+  // 2. Debounced Search Logic
+  useEffect(() => {
+    if (search.length > 0 && search.length < 2) return;
+    const timeout = setTimeout(fetchColleges, 400);
+    return () => clearTimeout(timeout);
   }, [search, city, sortBy]);
 
   const fetchColleges = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
-        search,
-        city,
-        sortBy,
-      });
+      const params = new URLSearchParams({ search, city, sortBy });
       const res = await apiRequest(`/api/colleges?${params.toString()}`);
-      setColleges(res.data);
+      setColleges(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
-      console.error("Search Error:", err);
+      setColleges([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Modern Minimal Styles
-  const styles = {
-    container: {
-      padding: "20px 0",
-    },
-    header: {
-      marginBottom: "30px",
-      textAlign: "center" as const,
-    },
-    searchSection: {
-      display: "flex",
-      gap: "15px",
-      marginBottom: "40px",
-      flexWrap: "wrap" as const,
-      background: "#fff",
-      padding: "20px",
-      borderRadius: "12px",
-      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-      border: "1px solid #f0f0f0",
-    },
-    input: {
-      flex: 1,
-      minWidth: "200px",
-      padding: "12px 16px",
-      borderRadius: "8px",
-      border: "1px solid #ddd",
-      fontSize: "14px",
-      outline: "none",
-      transition: "border-color 0.2s",
-    },
-    select: {
-      padding: "12px 16px",
-      borderRadius: "8px",
-      border: "1px solid #ddd",
-      fontSize: "14px",
-      background: "#fff",
-      cursor: "pointer",
-      outline: "none",
-    },
-    grid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-      gap: "20px",
-    },
-    card: {
-      background: "#fff",
-      border: "1px solid #eaeaea",
-      borderRadius: "12px",
-      padding: "20px",
-      transition: "transform 0.2s, box-shadow 0.2s",
-      cursor: "pointer",
-      textDecoration: "none",
-      color: "inherit",
-      display: "block",
-    },
-    cardHover: {
-      transform: "translateY(-4px)",
-      boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
-    },
-    tag: {
-      display: "inline-block",
-      padding: "4px 8px",
-      borderRadius: "4px",
-      fontSize: "12px",
-      fontWeight: 600,
-      marginRight: "8px",
-      background: "#e7f3ff",
-      color: "#007bff",
-    },
-    rank: {
-      color: "#666",
-      fontSize: "14px",
-      marginTop: "10px",
+  const toggleCompare = (id: string) => {
+    let next: string[];
+    if (selectedForCompare.includes(id)) {
+      next = selectedForCompare.filter(i => i !== id);
+    } else {
+      if (selectedForCompare.length >= 3) return alert("Select up to 3 colleges max");
+      next = [...selectedForCompare, id];
     }
+    setSelectedForCompare(next);
+    localStorage.setItem("compare_ids", JSON.stringify(next));
+  };
+
+  const styles = {
+    container: { maxWidth: "1200px", margin: "0 auto", padding: "40px 20px" },
+    section: { marginBottom: "60px" },
+    grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "24px" },
+    card: { background: "#fff", border: "1px solid #f0f0f0", borderRadius: "16px", padding: "24px", transition: "all 0.2s ease", position: "relative" as const },
+    input: { padding: "12px", borderRadius: "8px", border: "1px solid #ddd", flex: 1, minWidth: "200px" },
+    tag: { padding: "4px 8px", borderRadius: "4px", fontSize: "12px", background: "#f0f7ff", color: "#007bff", fontWeight: 600 },
+    compareBtn: { padding: "8px 12px", borderRadius: "6px", border: "1px solid #ddd", background: "#fff", cursor: "pointer", fontSize: "13px" },
+    skeleton: { background: "#f0f0f0", borderRadius: "12px", height: "180px", width: "100%", animate: "pulse 1.5s infinite" }
   };
 
   return (
     <div style={styles.container}>
-      <div style={styles.header}>
-        <h1 style={{ fontSize: "2.5rem", color: "#1a1a1a", marginBottom: "10px" }}>Discover Your Future</h1>
-        <p style={{ color: "#666" }}>Explore and compare top colleges across the country.</p>
+      {/* Floating Compare Bar */}
+      {selectedForCompare.length > 0 && (
+        <div style={{ position: "fixed", bottom: "20px", left: "50%", transform: "translateX(-50%)", background: "#111", color: "#fff", padding: "15px 30px", borderRadius: "50px", display: "flex", gap: "20px", alignItems: "center", zIndex: 1000, boxShadow: "0 10px 25px rgba(0,0,0,0.3)" }}>
+          <span>{selectedForCompare.length} selected for comparison</span>
+          <Link href={`/compare?ids=${selectedForCompare.join(",")}`} style={{ color: "#fff", fontWeight: 700, textDecoration: "underline" }}>Compare Now</Link>
+          <button onClick={() => { setSelectedForCompare([]); localStorage.removeItem("compare_ids"); }} style={{ background: "none", border: "none", color: "#999", cursor: "pointer" }}>Clear</button>
+        </div>
+      )}
+
+      {/* Hero */}
+      <div style={{ textAlign: "center", marginBottom: "50px" }}>
+        <h1 style={{ fontSize: "3rem", fontWeight: 800 }}>Explore Top Colleges</h1>
+        <p style={{ color: "#666" }}>Live data from NIRF rankings with automated insights.</p>
       </div>
 
-      <div style={styles.searchSection}>
-        <input
-          placeholder="Search college by name..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={styles.input}
-        />
-        <input
-          placeholder="Filter by city..."
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-          style={styles.input}
-        />
-        <select 
-          value={sortBy} 
-          onChange={(e) => setSortBy(e.target.value)} 
-          style={styles.select}
-        >
-          <option value="rank">Sort by NIRF Rank</option>
-          <option value="fees">Sort by Annual Fees</option>
-          <option value="score">Sort by NIRF Score</option>
+      {/* Recommendations */}
+      {recommendations && search === "" && (
+        <div style={styles.section}>
+          <h2 style={{ marginBottom: "20px" }}>⭐ Recommended for You</h2>
+          <div style={styles.grid}>
+            {recommendations.topRated.map((c: any) => (
+              <CollegeCard key={c.id} college={c} isSelected={selectedForCompare.includes(c.id)} onToggle={() => toggleCompare(c.id)} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Search Controls */}
+      <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "30px", background: "#fff", padding: "20px", borderRadius: "12px", border: "1px solid #eee" }}>
+        <input placeholder="Search name..." value={search} onChange={e => setSearch(e.target.value)} style={styles.input} />
+        <input placeholder="City..." value={city} onChange={e => setCity(e.target.value)} style={styles.input} />
+        <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ ...styles.input, flex: 0, minWidth: "150px" }}>
+          <option value="rank">Rank</option>
+          <option value="fees">Fees</option>
+          <option value="score">Score</option>
         </select>
       </div>
 
-      {loading && <p style={{ textAlign: "center", color: "#007bff" }}>Updating results...</p>}
-
-      <div style={styles.grid}>
-        {!loading && colleges.map((college: any) => (
-          <Link 
-            href={`/college/${college.id}`} 
-            key={college.id} 
-            style={styles.card}
-            onMouseEnter={(e) => {
-              Object.assign(e.currentTarget.style, styles.cardHover);
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "none";
-              e.currentTarget.style.boxShadow = "none";
-            }}
-          >
-            <div style={{ marginBottom: "12px" }}>
-              <span style={styles.tag}>{college.state}</span>
-            </div>
-            <h3 style={{ margin: "0 0 8px 0", fontSize: "18px", color: "#111" }}>{college.name}</h3>
-            <p style={{ margin: "0", color: "#555", fontSize: "14px" }}>{college.city}</p>
-            
-            <div style={styles.rank}>
-              <strong>NIRF Rank: #{college.rank}</strong>
-              <div style={{ marginTop: "5px", color: "#28a745", fontWeight: 600 }}>
-                Fees: ₹{college.fees.toLocaleString()} / year
-              </div>
-            </div>
-          </Link>
-        ))}
-        {!loading && colleges.length === 0 && (
-          <p style={{ gridColumn: "1 / -1", textAlign: "center", color: "#999", marginTop: "40px" }}>
-            No colleges match your search criteria.
-          </p>
+      {/* Search Results */}
+      <div style={styles.section}>
+        <h2 style={{ marginBottom: "20px" }}>{search ? `Search results for "${search}"` : "All Colleges"}</h2>
+        {loading ? (
+          <div style={styles.grid}>
+            {[1,2,3].map(i => <div key={i} style={styles.skeleton} />)}
+          </div>
+        ) : (
+          <div style={styles.grid}>
+            {colleges.map((c: any) => (
+              <CollegeCard key={c.id} college={c} isSelected={selectedForCompare.includes(c.id)} onToggle={() => toggleCompare(c.id)} />
+            ))}
+          </div>
         )}
+        {!loading && colleges.length === 0 && <div style={{ textAlign: "center", padding: "50px", color: "#999" }}>No colleges found. Try a different search.</div>}
       </div>
     </div>
   );
 }
 
+function CollegeCard({ college, isSelected, onToggle }: any) {
+  return (
+    <div style={{ background: "#fff", border: isSelected ? "2px solid #007bff" : "1px solid #f0f0f0", borderRadius: "16px", padding: "24px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+      <div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
+          <span style={{ padding: "4px 8px", borderRadius: "4px", fontSize: "12px", background: "#f0f7ff", color: "#007bff", fontWeight: 600 }}>{college.state || "N/A"}</span>
+          <button onClick={onToggle} style={{ border: "1px solid #ddd", background: isSelected ? "#007bff" : "#fff", color: isSelected ? "#fff" : "#333", borderRadius: "6px", padding: "5px 10px", fontSize: "12px", cursor: "pointer" }}>
+            {isSelected ? "Selected" : "Select to Compare"}
+          </button>
+        </div>
+        <h3 style={{ margin: "0 0 5px 0", fontSize: "18px" }}>{college.name}</h3>
+        <p style={{ margin: 0, color: "#666", fontSize: "14px" }}>{college.city}</p>
+      </div>
+      <div style={{ marginTop: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span style={{ fontSize: "14px", fontWeight: 600 }}>Rank #{college.rank ?? "N/A"}</span>
+        <Link href={`/college/${college.id}`} style={{ fontSize: "14px", color: "#007bff", textDecoration: "none" }}>Details →</Link>
+      </div>
+    </div>
+  );
+}

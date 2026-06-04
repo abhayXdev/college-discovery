@@ -140,4 +140,25 @@ export class CollegeService {
       },
     });
   }
+
+  static async getRecommendations() {
+    // 1. Get Top 5 by Score
+    // 2. Get Top 5 by Value (Lowest Fees with Score > 50)
+    const [topRated, bestValue] = await Promise.all([
+      prisma.college.findMany({
+        take: 5,
+        orderBy: { score: "desc" },
+      }),
+      prisma.college.findMany({
+        where: { score: { gte: 50 } },
+        take: 5,
+        orderBy: { fees: "asc" },
+      }),
+    ]);
+
+    return {
+      topRated,
+      bestValue,
+    };
+  }
 }
