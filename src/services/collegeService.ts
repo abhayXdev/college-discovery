@@ -2,6 +2,28 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 
 export class CollegeService {
+  /**
+   * BACKEND WHY: The "Normalization Layer"
+   * Ensures the frontend NEVER receives undefined or invalid types for critical fields.
+   * This makes the system "Crash-Proof" at the edge.
+   */
+  private static normalizeCollege(college: any) {
+    if (!college) return null;
+    return {
+      ...college,
+      fees: typeof college.fees === "number" ? college.fees : 0,
+      rank: typeof college.rank === "number" ? college.rank : 9999,
+      score: typeof college.score === "number" ? college.score : 0,
+      tlr: college.tlr ?? 0,
+      rpc: college.rpc ?? 0,
+      go: college.go ?? 0,
+      oi: college.oi ?? 0,
+      perception: college.perception ?? 0,
+      city: college.city || "N/A",
+      state: college.state || "N/A",
+    };
+  }
+
   static async searchColleges(params: {
     search?: string;
     city?: string;
@@ -14,11 +36,11 @@ export class CollegeService {
     limit?: number;
   }) {
     const { 
-      search = "", 
-      city = "", 
-      state = "", 
+      search, 
+      city, 
+      state, 
       minFees = 0, 
-      maxFees = Infinity,
+      maxFees,
       sortBy = "rank",
       sortOrder = "asc",
       page = 1, 
@@ -27,29 +49,28 @@ export class CollegeService {
 
     const skip = (page - 1) * limit;
 
-    // 1. Conditionally build the where clause
-    // This prevents passing 'undefined' or empty objects into Prisma filters
+    // 1. Defensively build the where clause
     const conditions: Prisma.CollegeWhereInput[] = [];
 
-    if (search) {
-      conditions.push({ name: { contains: search, mode: "insensitive" } });
+    if (search && search.trim()) {
+      conditions.push({ name: { contains: search.trim(), mode: "insensitive" } });
     }
-    if (city) {
-      conditions.push({ city: { equals: city, mode: "insensitive" } });
+    if (city && city.trim()) {
+      conditions.push({ city: { equals: city.trim(), mode: "insensitive" } });
     }
-    if (state) {
-      conditions.push({ state: { equals: state, mode: "insensitive" } });
+    if (state && state.trim()) {
+      conditions.push({ state: { equals: state.trim(), mode: "insensitive" } });
     }
 
-    // Handle Fees filtering safely
-    if (minFees > 0 || (maxFees !== undefined && maxFees !== Infinity)) {
-      const feesFilter: Prisma.FloatFilter = {};
-      if (minFees > 0) feesFilter.gte = minFees;
-      if (maxFees !== undefined && maxFees !== Infinity) feesFilter.lte = maxFees;
-      
-      if (Object.keys(feesFilter).length > 0) {
-        conditions.push({ fees: feesFilter });
-      }
+    // Strict Fees Range Logic
+    const feesFilter: Prisma.FloatFilter = {};
+    if (minFees > 0) feesFilter.gte = minFees;
+    if (maxFees !== undefined && maxFees !== Infinity && maxFees > 0) {
+      feesFilter.lte = maxFees;
+    }
+    
+    if (Object.keys(feesFilter).length > 0) {
+      conditions.push({ fees: feesFilter });
     }
 
     const where: Prisma.CollegeWhereInput = conditions.length > 0 ? { AND: conditions } : {};
@@ -65,36 +86,38 @@ export class CollegeService {
     ]);
 
     return {
-      colleges,
+      colleges: colleges.map(this.normalizeCollege),
       totalCount,
       totalPages: Math.ceil(totalCount / limit),
     };
   }
 
   static async getCollegeById(id: string) {
-    return prisma.college.findUnique({
+    const college = await prisma.college.findUnique({
       where: { id },
       include: {
         courses: true,
       },
     });
+    return this.normalizeCollege(college);
   }
 
   static async compareColleges(ids: string[]) {
-    return prisma.college.findMany({
+    const colleges = await prisma.college.findMany({
       where: {
         id: { in: ids },
       },
       include: {
         courses: {
-          take: 10, // Avoid N+1 and massive payloads
+          take: 10,
         },
       },
     });
+    return colleges.map(this.normalizeCollege);
   }
 
   static async predictColleges(score: number) {
-    return prisma.college.findMany({
+    const colleges = await prisma.college.findMany({
       where: {
         score: {
           lte: score,
@@ -106,16 +129,15 @@ export class CollegeService {
       },
       take: 10,
     });
+    return colleges.map(this.normalizeCollege);
   }
 
   static async saveCollege(userId: string, collegeId: string) {
-    // Check if college exists
     const college = await prisma.college.findUnique({ where: { id: collegeId } });
     if (!college) {
       throw new NotFoundError("College not found");
     }
 
-    // Check if already saved
     const existing = await prisma.savedCollege.findFirst({
       where: { userId, collegeId },
     });
@@ -133,16 +155,36 @@ export class CollegeService {
   }
 
   static async getSavedColleges(userId: string) {
-    return prisma.savedCollege.findMany({
+    const saved = await prisma.savedCollege.findMany({
       where: { userId },
       include: {
         college: true,
       },
     });
+    
+    return saved.map(s => ({
+      ...s,
+      college: this.normalizeCollege(s.college)
+    }));
   }
 
   static async getRecommendations() {
-    // ... logic ...
+    const [topRated, bestValue] = await Promise.all([
+      prisma.college.findMany({
+        take: 5,
+        orderBy: { score: "desc" },
+      }),
+      prisma.college.findMany({
+        where: { score: { gte: 50 } },
+        take: 5,
+        orderBy: { fees: "asc" },
+      }),
+    ]);
+
+    return {
+      topRated: topRated.map(this.normalizeCollege),
+      bestValue: bestValue.map(this.normalizeCollege),
+    };
   }
 
   static async getAdvancedPredictions(params: {
@@ -153,7 +195,6 @@ export class CollegeService {
   }) {
     const { budget, minRank, maxRank, location } = params;
 
-    // 1. Fetch colleges within the rank range
     const colleges = await prisma.college.findMany({
       where: {
         rank: {
@@ -163,42 +204,38 @@ export class CollegeService {
       },
     });
 
-    // 2. Apply Rule-Based Scoring
-    const results = colleges.map((college) => {
-      let score = 50; // Base score for being in rank range
+    const results = colleges.map((rawCollege) => {
+      const college = this.normalizeCollege(rawCollege)!;
+      let matchScore = 50; // Base score
 
-      // Rule: Budget Match (Heaviest Weight)
+      // Budget Weight (30%)
       if (college.fees <= budget) {
-        score += 30; // Within budget bonus
-      } else if (college.fees <= budget * 1.2) {
-        score += 10; // Slightly over budget (20% buffer)
+        matchScore += 30;
+      } else if (college.fees <= budget * 1.25) {
+        matchScore += 10;
       } else {
-        score -= 20; // Way over budget penalty
+        matchScore -= 20;
       }
 
-      // Rule: Location Match
-      if (location && (
-        college.city.toLowerCase().includes(location.toLowerCase()) || 
-        college.state.toLowerCase().includes(location.toLowerCase())
-      )) {
-        score += 20;
+      // Location Match (20%)
+      if (location && location.trim()) {
+        const loc = location.trim().toLowerCase();
+        if (college.city.toLowerCase().includes(loc) || college.state.toLowerCase().includes(loc)) {
+          matchScore += 20;
+        }
       }
 
-      // Rule: High Rank Bonus (Better rank = higher chance of being a 'Top' choice)
-      // We normalize rank influence. A rank of 1 gets more 'Choice Weight' than 50.
-      const rankBonus = Math.max(0, 10 - (college.rank / 10));
-      score += rankBonus;
-
-      // Final Clamp (0-100)
-      const finalScore = Math.min(100, Math.max(0, Math.round(score)));
+      // Academic Quality / Rank normalization (10%)
+      // High rank (low number) gets more points
+      const normalizedRankInfluence = Math.max(0, 10 - (college.rank / 20));
+      matchScore += normalizedRankInfluence;
 
       return {
         ...college,
-        matchScore: finalScore,
+        matchScore: Math.min(100, Math.max(0, Math.round(matchScore))),
       };
     });
 
-    // 3. Sort by matchScore descending and return top 10
     return results
       .sort((a, b) => b.matchScore - a.matchScore)
       .slice(0, 10);
