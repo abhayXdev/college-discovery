@@ -142,23 +142,65 @@ export class CollegeService {
   }
 
   static async getRecommendations() {
-    // 1. Get Top 5 by Score
-    // 2. Get Top 5 by Value (Lowest Fees with Score > 50)
-    const [topRated, bestValue] = await Promise.all([
-      prisma.college.findMany({
-        take: 5,
-        orderBy: { score: "desc" },
-      }),
-      prisma.college.findMany({
-        where: { score: { gte: 50 } },
-        take: 5,
-        orderBy: { fees: "asc" },
-      }),
-    ]);
+    // ... logic ...
+  }
 
-    return {
-      topRated,
-      bestValue,
-    };
+  static async getAdvancedPredictions(params: {
+    budget: number;
+    minRank: number;
+    maxRank: number;
+    location?: string;
+  }) {
+    const { budget, minRank, maxRank, location } = params;
+
+    // 1. Fetch colleges within the rank range
+    const colleges = await prisma.college.findMany({
+      where: {
+        rank: {
+          gte: minRank,
+          lte: maxRank,
+        },
+      },
+    });
+
+    // 2. Apply Rule-Based Scoring
+    const results = colleges.map((college) => {
+      let score = 50; // Base score for being in rank range
+
+      // Rule: Budget Match (Heaviest Weight)
+      if (college.fees <= budget) {
+        score += 30; // Within budget bonus
+      } else if (college.fees <= budget * 1.2) {
+        score += 10; // Slightly over budget (20% buffer)
+      } else {
+        score -= 20; // Way over budget penalty
+      }
+
+      // Rule: Location Match
+      if (location && (
+        college.city.toLowerCase().includes(location.toLowerCase()) || 
+        college.state.toLowerCase().includes(location.toLowerCase())
+      )) {
+        score += 20;
+      }
+
+      // Rule: High Rank Bonus (Better rank = higher chance of being a 'Top' choice)
+      // We normalize rank influence. A rank of 1 gets more 'Choice Weight' than 50.
+      const rankBonus = Math.max(0, 10 - (college.rank / 10));
+      score += rankBonus;
+
+      // Final Clamp (0-100)
+      const finalScore = Math.min(100, Math.max(0, Math.round(score)));
+
+      return {
+        ...college,
+        matchScore: finalScore,
+      };
+    });
+
+    // 3. Sort by matchScore descending and return top 10
+    return results
+      .sort((a, b) => b.matchScore - a.matchScore)
+      .slice(0, 10);
   }
 }

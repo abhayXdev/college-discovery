@@ -30,6 +30,9 @@ export default function RootLayout({
             CollegeDiscovery
           </Link>
           <div style={{ flex: 1 }} />
+          <Link href="/predictor" style={{ textDecoration: "none", color: "#007bff", marginRight: "20px" }}>
+            Predictor
+          </Link>
           {isAuth ? (
             <>
               <Link href="/saved" style={{ textDecoration: "none", color: "#007bff" }}>
