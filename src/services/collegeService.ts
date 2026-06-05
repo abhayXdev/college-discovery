@@ -68,9 +68,19 @@ export class CollegeService {
     // 1. Dynamic safe query building
     const conditions: Prisma.CollegeWhereInput[] = [];
 
-    if (search?.trim()) conditions.push({ name: { contains: search.trim(), mode: "insensitive" } });
-    if (city?.trim()) conditions.push({ city: { equals: city.trim(), mode: "insensitive" } });
-    if (state?.trim()) conditions.push({ state: { equals: state.trim(), mode: "insensitive" } });
+    if (search?.trim()) {
+      const term = search.trim();
+      conditions.push({
+        OR: [
+          { name: { contains: term, mode: "insensitive" } },
+          term.toLowerCase() === "iit" ? { name: { contains: "Indian Institute of Technology", mode: "insensitive" } } : {},
+          { instituteId: { contains: term, mode: "insensitive" } }
+        ]
+      });
+    }
+
+    if (city?.trim()) conditions.push({ city: { contains: city.trim(), mode: "insensitive" } });
+    if (state?.trim()) conditions.push({ state: { contains: state.trim(), mode: "insensitive" } });
     
     const feesFilter: Prisma.FloatFilter = {};
     if (typeof minFees === "number" && minFees > 0) feesFilter.gte = minFees;

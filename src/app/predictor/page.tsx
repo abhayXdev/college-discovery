@@ -20,11 +20,19 @@ export default function PredictorPage() {
     setLoading(true);
     setError("");
     try {
-      const params = new URLSearchParams(form);
+      const cleanForm = {
+        ...form,
+        budget: form.budget || "0",
+        maxRank: form.maxRank || "1000",
+        minRank: form.minRank || "1"
+      };
+      const params = new URLSearchParams(cleanForm);
       const res = await apiRequest(`/api/predict/advanced?${params.toString()}`);
+      if (!res || !res.data) throw new Error("EMPTY_ALGORITHM_OUTPUT");
       setResults(res.data);
     } catch (err: any) {
-      setError(err.message);
+      console.error("PREDICTOR_ERROR:", err);
+      setError(err.message || "ALGORITHM_CRASH");
     } finally {
       setLoading(false);
     }

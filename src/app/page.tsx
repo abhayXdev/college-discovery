@@ -44,14 +44,22 @@ export default function HomePage() {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({ search, city, sortBy, page: page.toString(), limit: "10" });
+      const params = new URLSearchParams();
+      if (search.trim()) params.append("search", search.trim());
+      if (city.trim()) params.append("city", city.trim());
+      params.append("sortBy", sortBy);
+      params.append("page", page.toString());
+      params.append("limit", "10");
+
       const res = await apiRequest(`/api/colleges?${params.toString()}`, { signal: controller.signal });
+      if (!res) throw new Error("NULL_API_RESPONSE");
       setColleges(Array.isArray(res.data) ? res.data : []);
       setTotalPages(res.pagination?.totalPages || 1);
       setTotalResults(res.pagination?.total || 0);
     } catch (err: any) {
       if (err.name === "AbortError") return;
-      setError("COMMUNICATION_FAILURE: UNABLE_TO_RETRIEVE_RECORDS");
+      console.error("COLLEGE_FETCH_ERROR:", err);
+      setError(`COMMUNICATION_FAILURE: ${err.message || "UNABLE_TO_RETRIEVE_RECORDS"}`);
       setColleges([]);
     } finally {
       if (!controller.signal.aborted) setLoading(false);
