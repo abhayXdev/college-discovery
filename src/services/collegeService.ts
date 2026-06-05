@@ -70,13 +70,17 @@ export class CollegeService {
 
     if (search?.trim()) {
       const term = search.trim();
-      conditions.push({
-        OR: [
-          { name: { contains: term, mode: "insensitive" } },
-          term.toLowerCase() === "iit" ? { name: { contains: "Indian Institute of Technology", mode: "insensitive" } } : {},
-          { instituteId: { contains: term, mode: "insensitive" } }
-        ]
-      });
+      const nameConditions: Prisma.CollegeWhereInput[] = [
+        { name: { contains: term, mode: "insensitive" } },
+        { instituteId: { contains: term, mode: "insensitive" } }
+      ];
+
+      // Add expanded acronym matching for IIT
+      if (term.toLowerCase() === "iit") {
+        nameConditions.push({ name: { contains: "Indian Institute of Technology", mode: "insensitive" } });
+      }
+
+      conditions.push({ OR: nameConditions });
     }
 
     if (city?.trim()) conditions.push({ city: { contains: city.trim(), mode: "insensitive" } });

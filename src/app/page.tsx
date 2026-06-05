@@ -45,20 +45,26 @@ export default function HomePage() {
     setError(null);
     try {
       const params = new URLSearchParams();
-      if (search.trim()) params.append("search", search.trim());
-      if (city.trim()) params.append("city", city.trim());
+      const searchTerm = search.trim();
+      const cityTerm = city.trim();
+
+      if (searchTerm) params.append("search", searchTerm);
+      if (cityTerm) params.append("city", cityTerm);
       params.append("sortBy", sortBy);
       params.append("page", page.toString());
       params.append("limit", "10");
 
-      const res = await apiRequest(`/api/colleges?${params.toString()}`, { signal: controller.signal });
-      if (!res) throw new Error("NULL_API_RESPONSE");
+      const url = `/api/colleges?${params.toString()}`;
+      const res = await apiRequest(url, { signal: controller.signal });
+      
+      if (!res || !res.success) throw new Error("INVALID_SERVER_RESPONSE");
+      
       setColleges(Array.isArray(res.data) ? res.data : []);
       setTotalPages(res.pagination?.totalPages || 1);
       setTotalResults(res.pagination?.total || 0);
     } catch (err: any) {
       if (err.name === "AbortError") return;
-      console.error("COLLEGE_FETCH_ERROR:", err);
+      console.error("DISCOVERY_FETCH_ERROR:", err);
       setError(`COMMUNICATION_FAILURE: ${err.message || "UNABLE_TO_RETRIEVE_RECORDS"}`);
       setColleges([]);
     } finally {
