@@ -128,8 +128,10 @@ function CollegeCard({ college, isSelected, onToggle }: any) {
       flexDirection: "column",
       position: "relative"
     }}>
-      <div style={{ background: "#000", color: "#fff", padding: "8px 20px", fontWeight: 900, fontSize: "12px", textTransform: "uppercase" }}>
-        {college.state || "UNKNOWN"} // {college.rating} RATING_INDEX
+      <div style={{ background: "#000", color: "#fff", padding: "8px 20px", fontWeight: 900, fontSize: "12px", textTransform: "uppercase", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span>{college.state || "UNKNOWN"} // {college.rating} RATING_INDEX</span>
+        {college.status === "DEMO" && <span style={{ background: "#FACC15", color: "#000", padding: "2px 8px", fontSize: "10px" }}>DEMO_DATA</span>}
+        {college.status === "VERIFIED" && <span style={{ background: "#138808", color: "#fff", padding: "2px 8px", fontSize: "10px" }}>VERIFIED</span>}
       </div>
       
       <div style={{ padding: "30px" }}>
