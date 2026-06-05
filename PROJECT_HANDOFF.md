@@ -73,7 +73,7 @@ npm run start
 
 ---
 
-## 5. Internship Submission Highlights
+## 5. Project Submission Highlights
 
 ### Technical Challenges Solved
 - **Connection Exhaustion**: Solved the `ECONNRESET` issue by architecting a Prisma Singleton pattern, crucial for Next.js serverless and development environments.
