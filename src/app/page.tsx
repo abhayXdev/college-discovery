@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { apiRequest } from "@/lib/api-client";
 import Link from "next/link";
 
@@ -9,10 +9,14 @@ export default function HomePage() {
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("");
   const [sortBy, setSortBy] = useState("rank");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [selectedForCompare, setSelectedForCompare] = useState<string[]>([]);
 
-  const abortControllerRef = typeof window !== "undefined" ? { current: new AbortController() } : { current: null };
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     apiRequest("/api/colleges/recommendations").then(res => setRecommendations(res.data)).catch(console.error);
@@ -21,27 +25,43 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
+    // Reset page to 1 on new search/filter
+    setPage(1);
+  }, [search, city, sortBy]);
+
+  useEffect(() => {
     if (search.length > 0 && search.length < 2) return;
     const timeout = setTimeout(() => fetchColleges(), 400);
     return () => clearTimeout(timeout);
-  }, [search, city, sortBy]);
+  }, [search, city, sortBy, page]);
 
   const fetchColleges = async () => {
-    if (abortControllerRef.current) abortControllerRef.current.abort();
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
     setLoading(true);
+    setError(null);
     try {
-      const params = new URLSearchParams({ search, city, sortBy });
+      const params = new URLSearchParams({ search, city, sortBy, page: page.toString(), limit: "10" });
       const res = await apiRequest(`/api/colleges?${params.toString()}`, { signal: controller.signal });
       setColleges(Array.isArray(res.data) ? res.data : []);
+      setTotalPages(res.pagination?.totalPages || 1);
+      setTotalResults(res.pagination?.total || 0);
     } catch (err: any) {
       if (err.name === "AbortError") return;
+      setError("COMMUNICATION_FAILURE: UNABLE_TO_RETRIEVE_RECORDS");
       setColleges([]);
     } finally {
       if (!controller.signal.aborted) setLoading(false);
     }
+  };
+
+  const handleManualSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchColleges();
   };
 
   const toggleCompare = (id: string) => {
@@ -61,10 +81,13 @@ export default function HomePage() {
     hero: { borderLeft: "15px solid #000", paddingLeft: "40px", marginBottom: "100px" },
     title: { fontSize: "6rem", fontWeight: 900, lineHeight: 0.85, textTransform: "uppercase" as const, letterSpacing: "-0.05em", margin: "0 0 20px 0" },
     subtitle: { fontSize: "24px", fontWeight: 800, color: "#000", textTransform: "uppercase" as const, letterSpacing: "0.1em" },
-    searchEngine: { border: "4px solid #000", display: "flex", flexWrap: "wrap" as const, marginBottom: "80px", background: "#000" },
+    searchEngine: { border: "4px solid #000", display: "flex", flexWrap: "wrap" as const, marginBottom: "20px", background: "#000" },
     input: { flex: 1, border: "none", padding: "25px 30px", fontSize: "20px", fontWeight: 800, outline: "none", background: "#fff", borderRight: "4px solid #000" },
-    select: { border: "none", padding: "0 30px", fontSize: "16px", fontWeight: 900, outline: "none", background: "#FACC15", cursor: "pointer", textTransform: "uppercase" as const },
+    select: { border: "none", padding: "0 30px", fontSize: "16px", fontWeight: 900, outline: "none", background: "#FACC15", cursor: "pointer", textTransform: "uppercase" as const, borderRight: "4px solid #000" },
+    searchBtn: { border: "none", padding: "0 40px", background: "#000", color: "#fff", fontWeight: 900, cursor: "pointer", fontSize: "18px", textTransform: "uppercase" as const },
     grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(400px, 1fr))", gap: "40px" },
+    pagination: { display: "flex", justifyContent: "center", alignItems: "center", gap: "20px", marginTop: "60px" },
+    pageBtn: { padding: "15px 30px", background: "#000", color: "#fff", border: "none", fontWeight: 900, cursor: "pointer", fontSize: "14px", textTransform: "uppercase" as const }
   };
 
   return (
@@ -81,14 +104,21 @@ export default function HomePage() {
         <p style={styles.subtitle}>Institutional performance audit // verified data system</p>
       </div>
 
-      <div style={styles.searchEngine}>
-        <input placeholder="ENTER_INSTITUTION_NAME" value={search} onChange={e => setSearch(e.target.value)} style={styles.input} />
-        <input placeholder="REGION_ID" value={city} onChange={e => setCity(e.target.value)} style={styles.input} />
-        <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={styles.select}>
-          <option value="rank">SORT_BY_RANK</option>
-          <option value="fees">SORT_BY_FEES</option>
-          <option value="score">SORT_BY_SCORE</option>
-        </select>
+      <form onSubmit={handleManualSearch}>
+        <div style={styles.searchEngine}>
+          <input placeholder="ENTER_INSTITUTION_NAME" value={search} onChange={e => setSearch(e.target.value)} style={styles.input} />
+          <input placeholder="REGION_ID" value={city} onChange={e => setCity(e.target.value)} style={styles.input} />
+          <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={styles.select}>
+            <option value="rank">SORT_BY_RANK</option>
+            <option value="fees">SORT_BY_FEES</option>
+            <option value="score">SORT_BY_SCORE</option>
+          </select>
+          <button type="submit" style={styles.searchBtn}>SEARCH_SYSTEM</button>
+        </div>
+      </form>
+
+      <div style={{ marginBottom: "80px", fontSize: "14px", fontWeight: 900, textTransform: "uppercase" }}>
+        RESULTS_COUNT: {totalResults} ENTITIES_FOUND
       </div>
 
       {recommendations && !search && (
@@ -104,14 +134,53 @@ export default function HomePage() {
 
       <div>
         <h2 style={{ fontSize: "32px", fontWeight: 900, marginBottom: "30px", textTransform: "uppercase", borderBottom: "4px solid #000", paddingBottom: "10px" }}>Institutional_Database</h2>
-        {loading ? (
-          <div style={{ padding: "40px", fontSize: "24px", fontWeight: 900, background: "#000", color: "#fff", textAlign: "center" }}>FETCHING_RECORDS_STREAM...</div>
-        ) : (
-          <div style={styles.grid}>
-            {colleges.map((c: any) => (
-              <CollegeCard key={c.id} college={c} isSelected={selectedForCompare.includes(c.id)} onToggle={() => toggleCompare(c.id)} />
-            ))}
+        
+        {loading && (
+          <div style={{ padding: "80px", fontSize: "24px", fontWeight: 900, background: "#000", color: "#fff", textAlign: "center" }}>FETCHING_RECORDS_STREAM...</div>
+        )}
+
+        {error && !loading && (
+          <div style={{ padding: "80px", background: "#E11D48", color: "#fff", textAlign: "center", border: "4px solid #000" }}>
+            <h3 style={{ fontSize: "32px", fontWeight: 900 }}>{error}</h3>
+            <button onClick={() => fetchColleges()} style={{ marginTop: "20px", background: "#fff", color: "#000", padding: "10px 20px", border: "none", fontWeight: 900, cursor: "pointer" }}>RETRY_CONNECTION</button>
           </div>
+        )}
+
+        {!loading && !error && colleges.length === 0 && (
+          <div style={{ padding: "80px", border: "4px dashed #000", textAlign: "center" }}>
+            <h3 style={{ fontSize: "32px", fontWeight: 900, textTransform: "uppercase" }}>ZERO_RECORDS_MATCHED</h3>
+            <p style={{ fontWeight: 700 }}>Modify search parameters or reset filters.</p>
+          </div>
+        )}
+
+        {!loading && !error && colleges.length > 0 && (
+          <>
+            <div style={styles.grid}>
+              {colleges.map((c: any) => (
+                <CollegeCard key={c.id} college={c} isSelected={selectedForCompare.includes(c.id)} onToggle={() => toggleCompare(c.id)} />
+              ))}
+            </div>
+
+            <div style={styles.pagination}>
+              <button 
+                disabled={page === 1} 
+                onClick={() => setPage(p => p - 1)} 
+                style={{ ...styles.pageBtn, opacity: page === 1 ? 0.3 : 1, cursor: page === 1 ? "not-allowed" : "pointer" }}
+              >
+                ← PREV_PAGE
+              </button>
+              <div style={{ fontWeight: 900, fontSize: "20px" }}>
+                {page} / {totalPages}
+              </div>
+              <button 
+                disabled={page === totalPages} 
+                onClick={() => setPage(p => p + 1)} 
+                style={{ ...styles.pageBtn, opacity: page === totalPages ? 0.3 : 1, cursor: page === totalPages ? "not-allowed" : "pointer" }}
+              >
+                NEXT_PAGE →
+              </button>
+            </div>
+          </>
         )}
       </div>
     </div>
