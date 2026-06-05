@@ -55,13 +55,13 @@ export default function DiscussionsPage() {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.hero}>
-        <h1 style={styles.title}>Peer_To_Peer<br />Intelligence</h1>
-        <p style={{ fontSize: "20px", fontWeight: 700, color: "#666", textTransform: "uppercase" as const, letterSpacing: "0.1em" }}>Community Query System // Collective Assessment</p>
+    <div className="max-w-7xl mx-auto px-4 py-10 md:px-10 md:py-20">
+      <div style={styles.hero} className="mb-12 md:mb-20">
+        <h1 className="text-4xl md:text-8xl font-black uppercase leading-[0.85] tracking-tighter mb-5">Peer_To_Peer<br />Intelligence</h1>
+        <p className="text-sm md:text-xl font-bold text-gray-500 uppercase tracking-widest">Community Query System // Collective Assessment</p>
       </div>
 
-      <div style={styles.postCard}>
+      <div style={styles.postCard} className="p-8 md:p-14 mb-16 md:mb-20">
         <div style={{ position: "absolute", top: "-25px", left: "40px", background: "#000", color: "#fff", padding: "10px 30px", border: "4px solid #000", fontWeight: 900 }}>QUERY_INITIALIZATION</div>
         <form onSubmit={handlePost}>
           <input 
@@ -69,6 +69,7 @@ export default function DiscussionsPage() {
             value={title} 
             onChange={e => setTitle(e.target.value)} 
             style={styles.input} 
+            className="text-lg md:text-xl p-5 md:p-6"
             required
           />
           <textarea 
@@ -76,32 +77,39 @@ export default function DiscussionsPage() {
             value={content} 
             onChange={e => setContent(e.target.value)} 
             style={{ ...styles.input, height: "150px", resize: "none" }} 
+            className="text-lg md:text-xl p-5 md:p-6"
             required
           />
-          <button type="submit" disabled={isPosting} style={styles.button}>
+          <button type="submit" disabled={isPosting} style={styles.button} className="w-full md:w-auto">
             {isPosting ? "TRANSMITTING..." : "BROADCAST_QUERY →"}
           </button>
         </form>
       </div>
 
       <div>
-        <h2 style={{ fontSize: "32px", fontWeight: 900, marginBottom: "30px", textTransform: "uppercase", borderBottom: "4px solid #000", paddingBottom: "10px" }}>Live_Intelligence_Feed</h2>
+        <h2 className="text-2xl md:text-4xl font-black mb-8 uppercase border-b-4 border-black pb-3">Live_Intelligence_Feed</h2>
         {loading ? (
-          <div style={{ padding: "40px", fontSize: "24px", fontWeight: 900, background: "#000", color: "#fff", textAlign: "center" }}>SYNCING_COMMUNITY_THREADS...</div>
-        ) : discussions.map(d => (
-          <div key={d.id} style={styles.thread}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-              <span style={styles.tag}>{d.college?.name || "GENERAL_FORUM"}</span>
-              <span style={{ fontWeight: 800, fontSize: "12px", color: "#999" }}>TIMESTAMP: {new Date(d.createdAt).toLocaleDateString()}</span>
-            </div>
-            <h3 style={{ fontSize: "28px", fontWeight: 900, marginBottom: "15px", textTransform: "uppercase" }}>{d.title}</h3>
-            <p style={{ fontSize: "18px", lineHeight: 1.6, color: "#444", marginBottom: "30px", fontWeight: 600 }}>{d.content}</p>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "4px solid #000", paddingTop: "20px" }}>
-              <span style={{ fontSize: "16px", color: "#E11D48", fontWeight: 900 }}>RESPONSES: {d._count.answers}</span>
-              <span style={{ fontSize: "14px", fontWeight: 800 }}>SOURCE: {d.user.email}</span>
-            </div>
+          <div className="p-20 text-center bg-black text-white font-black uppercase tracking-widest">SYNCING_COMMUNITY_THREADS...</div>
+        ) : (
+          <div className="space-y-8">
+            {discussions.map(d => (
+              <Link key={d.id} href={`/discussions/${d.id}`} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+                <div style={styles.thread} className="p-8 md:p-14 hover:border-[#E11D48] transition-colors cursor-pointer">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                    <span style={styles.tag}>{d.college?.name || "GENERAL_FORUM"}</span>
+                    <span className="font-black text-[10px] md:text-xs text-gray-400 uppercase tracking-widest">TIMESTAMP: {new Date(d.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <h3 className="text-2xl md:text-4xl font-black uppercase mb-4 leading-tight">{d.title}</h3>
+                  <p className="text-base md:text-xl font-bold text-gray-700 leading-relaxed mb-10">{d.content}</p>
+                  <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center border-t-4 border-black pt-6 gap-6">
+                    <span className="text-lg md:text-xl text-[#E11D48] font-black uppercase">RESPONSES: {d._count.answers}</span>
+                    <span className="text-xs md:text-sm font-black text-black uppercase tracking-tighter truncate">SOURCE: {d.user.email}</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
-        ))}
+        )}
       </div>
     </div>
   );

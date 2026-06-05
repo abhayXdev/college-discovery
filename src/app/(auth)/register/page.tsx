@@ -31,7 +31,7 @@ export default function RegisterPage() {
 
   const styles = {
     wrapper: { minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff" },
-    card: { width: "100%", maxWidth: "500px", border: "6px solid #000", padding: "60px", background: "#fff", position: "relative" as const },
+    card: { width: "100%", maxWidth: "500px", border: "6px solid #000", background: "#fff", position: "relative" as const },
     header: { marginBottom: "40px" },
     title: { fontSize: "48px", fontWeight: 900, textTransform: "uppercase" as const, lineHeight: 0.8, letterSpacing: "-0.05em" },
     label: { display: "block", fontSize: "12px", fontWeight: 900, textTransform: "uppercase" as const, marginBottom: "5px" },
@@ -41,8 +41,8 @@ export default function RegisterPage() {
   };
 
   return (
-    <div style={styles.wrapper}>
-      <div style={styles.card}>
+    <div style={styles.wrapper} className="px-4">
+      <div style={styles.card} className="p-8 md:p-16">
         <div style={{ position: "absolute", top: "-20px", left: "40px", background: "#FACC15", padding: "10px 20px", border: "4px solid #000", fontWeight: 900 }}>REGISTRATION_PROTOCOL</div>
         
         <div style={styles.header}>

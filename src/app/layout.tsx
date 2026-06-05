@@ -35,32 +35,13 @@ export default function RootLayout({
     <html lang="en">
       <body style={{ margin: 0, fontFamily: "'Inter', 'Helvetica', sans-serif", background: "#fff", color: "#000" }}>
         <nav
-          style={{
-            display: "flex",
-            padding: "0",
-            borderBottom: "6px solid #000",
-            background: "#fff",
-            height: "80px",
-            alignItems: "center"
-          }}
+          className="flex flex-col md:flex-row items-center border-b-[6px] border-black bg-white min-h-[80px]"
         >
-          <Link href="/" style={{ 
-            height: "100%", 
-            display: "flex", 
-            alignItems: "center", 
-            padding: "0 40px", 
-            background: "#000", 
-            color: "#fff", 
-            fontWeight: 900, 
-            textDecoration: "none", 
-            fontSize: "24px",
-            letterSpacing: "-0.05em",
-            textTransform: "uppercase"
-          }}>
+          <Link href="/" className="h-full flex items-center px-6 md:px-10 bg-black text-white font-black text-xl md:text-2xl tracking-tighter uppercase no-underline min-h-[80px] w-full md:w-auto justify-center md:justify-start">
             COLLEGE_ENGINE
           </Link>
-          <div style={{ flex: 1 }} />
-          <div style={{ display: "flex", height: "100%" }}>
+          <div className="flex-1 hidden md:block" />
+          <div className="flex flex-wrap items-stretch h-full w-full md:w-auto">
             <NavLink href="/predictor">Predictor</NavLink>
             <NavLink href="/discussions">Community</NavLink>
             {isAuth ? (
@@ -68,18 +49,7 @@ export default function RootLayout({
                 <NavLink href="/saved">Watchlist</NavLink>
                 <button
                   onClick={handleLogout}
-                  style={{
-                    height: "100%",
-                    border: "none",
-                    borderLeft: "3px solid #000",
-                    background: "#E11D48",
-                    color: "#fff",
-                    cursor: "pointer",
-                    padding: "0 30px",
-                    fontSize: "14px",
-                    fontWeight: 900,
-                    textTransform: "uppercase"
-                  }}
+                  className="h-full border-none border-l-[3px] border-black bg-[#E11D48] text-white cursor-pointer px-6 md:px-8 py-4 md:py-0 text-sm font-black uppercase"
                 >
                   Logout
                 </button>
@@ -102,20 +72,7 @@ export default function RootLayout({
 
 function NavLink({ href, children, highlight }: { href: string, children: React.ReactNode, highlight?: boolean }) {
   return (
-    <Link href={href} style={{ 
-      height: "100%", 
-      display: "flex", 
-      alignItems: "center", 
-      padding: "0 30px", 
-      textDecoration: "none", 
-      color: highlight ? "#fff" : "#000", 
-      background: highlight ? "#000" : "transparent",
-      fontWeight: 900, 
-      fontSize: "14px",
-      textTransform: "uppercase",
-      borderLeft: "3px solid #000",
-      letterSpacing: "0.05em"
-    }}>
+    <Link href={href} className={`flex-1 md:flex-none flex items-center justify-center px-6 md:px-8 py-4 md:py-0 no-underline text-sm font-black uppercase border-l-[3px] border-black tracking-widest ${highlight ? "bg-black text-white" : "bg-transparent text-black"}`}>
       {children}
     </Link>
   );

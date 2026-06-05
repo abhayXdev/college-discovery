@@ -4,8 +4,8 @@ export const searchSchema = z.object({
   search: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
-  minFees: z.string().optional().transform(v => v ? Number(v) : undefined),
-  maxFees: z.string().optional().transform(v => v ? Number(v) : undefined),
+  minFees: z.string().optional().transform(v => v ? Number(v) : undefined).pipe(z.number().min(0).optional()),
+  maxFees: z.string().optional().transform(v => v ? Number(v) : undefined).pipe(z.number().min(0).optional()),
   sortBy: z.enum(["fees", "rank", "score"]).default("rank"),
   sortOrder: z.enum(["asc", "desc"]).default("asc"),
   page: z.string().default("1").transform(v => Math.max(1, Number(v))),
@@ -23,9 +23,9 @@ export const registerSchema = z.object({
 });
 
 export const predictorSchema = z.object({
-  budget: z.string().transform(v => Number(v)),
-  minRank: z.string().default("1").transform(v => Number(v)),
-  maxRank: z.string().default("1000").transform(v => Number(v)),
+  budget: z.string().transform(v => Number(v)).pipe(z.number().min(0, "Budget must be at least 0")),
+  minRank: z.string().default("1").transform(v => Number(v)).pipe(z.number().min(0, "Rank must be at least 0")),
+  maxRank: z.string().default("1000").transform(v => Number(v)).pipe(z.number().min(0, "Rank must be at least 0")),
   location: z.string().optional(),
   exam: z.string().optional().default("JEE Mains"),
 });

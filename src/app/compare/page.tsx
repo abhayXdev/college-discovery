@@ -39,52 +39,54 @@ function CompareContent() {
   }
 
   return (
-    <div style={styles.container}>
-      <h1 style={{ marginBottom: "30px", fontSize: "2rem" }}>Compare Colleges</h1>
+    <div className="max-w-7xl mx-auto px-6 py-10 md:px-10 md:py-20">
+      <h1 className="text-4xl md:text-6xl font-black uppercase mb-10 tracking-tighter">Compare Colleges</h1>
       
-      <table style={styles.table}>
-        <thead>
-          <tr>
-            <th style={styles.th}>Feature</th>
-            {colleges.map(c => (
-              <th key={c.id} style={styles.th}>{c.name}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style={{ ...styles.td, ...styles.label }}>Location</td>
-            {colleges.map(c => <td key={c.id} style={styles.td}>{c.city}, {c.state}</td>)}
-          </tr>
-          <tr>
-            <td style={{ ...styles.td, ...styles.label }}>NIRF Rank</td>
-            {colleges.map(c => <td key={c.id} style={styles.td}>#{c.rank ?? "N/A"}</td>)}
-          </tr>
-          <tr>
-            <td style={{ ...styles.td, ...styles.label }}>Annual Fees</td>
-            {colleges.map(c => <td key={c.id} style={styles.td}>₹{c.fees?.toLocaleString() ?? "N/A"}</td>)}
-          </tr>
-          <tr>
-            <td style={{ ...styles.td, ...styles.label }}>Overall Score</td>
-            {colleges.map(c => <td key={c.id} style={styles.td}>{c.score ?? "N/A"} / 100</td>)}
-          </tr>
-          <tr>
-            <td style={{ ...styles.td, ...styles.label }}>Teaching (TLR)</td>
-            {colleges.map(c => <td key={c.id} style={styles.td}>{c.tlr ?? "0.0"}</td>)}
-          </tr>
-          <tr>
-            <td style={{ ...styles.td, ...styles.label }}>Research (RPC)</td>
-            {colleges.map(c => <td key={c.id} style={styles.td}>{c.rpc ?? "0.0"}</td>)}
-          </tr>
-          <tr>
-            <td style={{ ...styles.td, ...styles.label }}>Graduation (GO)</td>
-            {colleges.map(c => <td key={c.id} style={styles.td}>{c.go ?? "0.0"}</td>)}
-          </tr>
-        </tbody>
-      </table>
+      <div className="overflow-x-auto border-4 border-black">
+        <table className="w-full border-collapse bg-white">
+          <thead>
+            <tr>
+              <th className="text-left p-6 md:p-10 bg-gray-50 border-b-4 border-black font-black text-sm uppercase">Feature</th>
+              {colleges.map(c => (
+                <th key={c.id} className="text-center p-6 md:p-10 bg-black text-white border-b-4 border-black border-l-4 font-black text-sm uppercase min-w-[200px]">{c.name}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="p-6 md:p-8 border-b-2 border-gray-200 font-black text-xs uppercase bg-gray-50">Location</td>
+              {colleges.map(c => <td key={c.id} className="p-6 md:p-8 border-b-2 border-gray-200 border-l-4 text-center font-bold text-sm">{c.city}, {c.state}</td>)}
+            </tr>
+            <tr>
+              <td className="p-6 md:p-8 border-b-2 border-gray-200 font-black text-xs uppercase bg-gray-50">NIRF Rank</td>
+              {colleges.map(c => <td key={c.id} className="p-6 md:p-8 border-b-2 border-gray-200 border-l-4 text-center font-black text-lg">#{c.rank ?? "N/A"}</td>)}
+            </tr>
+            <tr>
+              <td className="p-6 md:p-8 border-b-2 border-gray-200 font-black text-xs uppercase bg-gray-50">Annual Fees</td>
+              {colleges.map(c => <td key={c.id} className="p-6 md:p-8 border-b-2 border-gray-200 border-l-4 text-center font-black text-lg">₹{c.fees?.toLocaleString() ?? "N/A"}</td>)}
+            </tr>
+            <tr>
+              <td className="p-6 md:p-8 border-b-2 border-gray-200 font-black text-xs uppercase bg-gray-50">Overall Score</td>
+              {colleges.map(c => <td key={c.id} className="p-6 md:p-8 border-b-2 border-gray-200 border-l-4 text-center font-black text-lg">{c.score ?? "N/A"} / 100</td>)}
+            </tr>
+            <tr>
+              <td className="p-6 md:p-8 border-b-2 border-gray-200 font-black text-xs uppercase bg-gray-50">Teaching (TLR)</td>
+              {colleges.map(c => <td key={c.id} className="p-6 md:p-8 border-b-2 border-gray-200 border-l-4 text-center font-bold">{c.tlr ?? "0.0"}</td>)}
+            </tr>
+            <tr>
+              <td className="p-6 md:p-8 border-b-2 border-gray-200 font-black text-xs uppercase bg-gray-50">Research (RPC)</td>
+              {colleges.map(c => <td key={c.id} className="p-6 md:p-8 border-b-2 border-gray-200 border-l-4 text-center font-bold">{c.rpc ?? "0.0"}</td>)}
+            </tr>
+            <tr>
+              <td className="p-6 md:p-8 font-black text-xs uppercase bg-gray-50">Graduation (GO)</td>
+              {colleges.map(c => <td key={c.id} className="p-6 md:p-8 border-l-4 text-center font-bold">{c.go ?? "0.0"}</td>)}
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-      <div style={{ marginTop: "40px", textAlign: "center" }}>
-        <Link href="/" style={{ color: "#007bff", textDecoration: "none", fontWeight: 600 }}>← Back to Discovery</Link>
+      <div className="mt-12 text-center">
+        <Link href="/" className="inline-block bg-black text-white px-10 py-5 font-black uppercase no-underline text-lg hover:bg-[#E11D48] transition-colors">← Back to Discovery</Link>
       </div>
     </div>
   );
