@@ -1,10 +1,10 @@
 "use client";
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { apiRequest } from "@/lib/api-client";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-export default function ComparePage() {
+function CompareContent() {
   const searchParams = useSearchParams();
   const ids = searchParams.get("ids")?.split(",") || [];
   const [colleges, setColleges] = useState<any[]>([]);
@@ -17,7 +17,7 @@ export default function ComparePage() {
       .then(res => setColleges(res.data))
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [ids.join(",")]);
 
   const styles = {
     container: { maxWidth: "1200px", margin: "50px auto", padding: "0 20px" },
@@ -87,5 +87,13 @@ export default function ComparePage() {
         <Link href="/" style={{ color: "#007bff", textDecoration: "none", fontWeight: 600 }}>← Back to Discovery</Link>
       </div>
     </div>
+  );
+}
+
+export default function ComparePage() {
+  return (
+    <Suspense fallback={<div style={{ textAlign: "center", padding: "100px" }}>Loading comparison interface...</div>}>
+      <CompareContent />
+    </Suspense>
   );
 }

@@ -49,7 +49,7 @@ async function runValidation() {
   await test("Filtering (State)", async () => {
     const state = "Tamil Nadu";
     const res = await CollegeService.searchColleges({ state, page: 1, limit: 5 });
-    const invalid = res.data.find(c => c.state !== state);
+    const invalid = res.data.find((c: any) => c.state !== state);
     if (invalid) throw new Error(`Filter leaked record from ${invalid.state}`);
   });
 

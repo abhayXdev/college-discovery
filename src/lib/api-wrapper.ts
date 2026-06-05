@@ -38,7 +38,7 @@ function handleError(error: any) {
         data: null,
         error: {
           message: "Validation failed",
-          details: error.errors.map(e => ({ path: e.path.join('.'), message: e.message })),
+          details: error.issues.map(e => ({ path: e.path.join('.'), message: e.message })),
           code: "ValidationError",
         },
       },

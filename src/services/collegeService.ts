@@ -241,4 +241,20 @@ export class CollegeService {
     });
     return saved.map(s => ({ ...s, college: this.normalizeCollege(s.college) }));
   }
+
+  /**
+   * Simple rank-based prediction logic
+   */
+  static async predictColleges(score: number) {
+    // Logic: higher score = better rank prediction
+    const targetRank = Math.max(1, 1000 - (score * 10));
+    const colleges = await prisma.college.findMany({
+      where: {
+        rank: { gte: targetRank - 50, lte: targetRank + 50 }
+      },
+      take: 5,
+      select: this.listProjection
+    });
+    return colleges.map(c => this.normalizeCollege(c));
+  }
 }
