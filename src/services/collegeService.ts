@@ -16,6 +16,7 @@ export class CollegeService {
     fees: true,
     score: true,
     rating: true,
+    status: true,
     medianSalary: true,
     highestPackage: true,
     overview: true,
