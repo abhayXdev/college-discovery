@@ -4,10 +4,12 @@ import jwt from "jsonwebtoken";
 import { BadRequestError, NotFoundError, InternalServerError } from "@/lib/errors";
 
 const getJwtSecret = () => {
-  if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
-    throw new InternalServerError("CRITICAL: JWT_SECRET environment variable is missing in production.");
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    console.error("CRITICAL_SECURITY_FAILURE: JWT_SECRET environment variable is missing.");
+    throw new InternalServerError("Internal Server Configuration Error");
   }
-  return process.env.JWT_SECRET || "fallback_secret_change_me_in_production";
+  return secret;
 };
 
 export class AuthService {
