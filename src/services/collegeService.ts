@@ -17,6 +17,13 @@ export class CollegeService {
     score: true,
     rating: true,
     medianSalary: true,
+    highestPackage: true,
+    overview: true,
+    tlr: true,
+    rpc: true,
+    go: true,
+    oi: true,
+    perception: true,
   };
 
   /**
