@@ -16,23 +16,32 @@ export default function PredictorPage() {
   const [error, setError] = useState("");
 
   const handlePredict = async (e: React.FormEvent) => {
-    e.preventDefault();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     setLoading(true);
     setError("");
+    setResults([]); // Clear previous results but keep the form
+
     try {
-      const cleanForm = {
+      const budgetVal = form.budget.replace(/[^0-9]/g, "") || "0";
+      const rankVal = form.maxRank.replace(/[^0-9]/g, "") || "1000";
+      
+      const cleanParams = new URLSearchParams({
         ...form,
-        budget: form.budget || "0",
-        maxRank: form.maxRank || "1000",
-        minRank: form.minRank || "1"
-      };
-      const params = new URLSearchParams(cleanForm);
-      const res = await apiRequest(`/api/predict/advanced?${params.toString()}`);
-      if (!res || !res.data) throw new Error("EMPTY_ALGORITHM_OUTPUT");
-      setResults(res.data);
+        budget: budgetVal,
+        maxRank: rankVal,
+        minRank: "1"
+      });
+
+      const res = await apiRequest(`/api/predict/advanced?${cleanParams.toString()}`);
+      if (!res || !res.success) throw new Error("ALGORITHM_SERVER_UNREACHABLE");
+      setResults(Array.isArray(res.data) ? res.data : []);
     } catch (err: any) {
-      console.error("PREDICTOR_ERROR:", err);
-      setError(err.message || "ALGORITHM_CRASH");
+      console.error("PREDICTOR_EXECUTION_ERROR:", err);
+      setError(err.message || "PREDICTION_ENGINE_FAILURE");
     } finally {
       setLoading(false);
     }

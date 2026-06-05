@@ -10,6 +10,12 @@ export default function DiscussionsPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isPosting, setIsPosting] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    fetchDiscussions();
+  }, []);
 
   const fetchDiscussions = async () => {
     try {
@@ -21,8 +27,6 @@ export default function DiscussionsPage() {
       setLoading(false);
     }
   };
-
-  useEffect(() => { fetchDiscussions(); }, []);
 
   const handlePost = async (e: React.FormEvent) => {
     e.preventDefault();
