@@ -97,7 +97,7 @@ export default function DiscussionsPage() {
                 <div style={styles.thread} className="p-8 md:p-14 hover:border-[#E11D48] transition-colors cursor-pointer">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                     <span style={styles.tag}>{d.college?.name || "GENERAL_FORUM"}</span>
-                    <span className="font-black text-[10px] md:text-xs text-gray-400 uppercase tracking-widest">TIMESTAMP: {new Date(d.createdAt).toLocaleDateString()}</span>
+                    <span className="font-black text-[10px] md:text-xs text-gray-400 uppercase tracking-widest" suppressHydrationWarning>TIMESTAMP: {new Date(d.createdAt).toLocaleDateString()}</span>
                   </div>
                   <h3 className="text-2xl md:text-4xl font-black uppercase mb-4 leading-tight">{d.title}</h3>
                   <p className="text-base md:text-xl font-bold text-gray-700 leading-relaxed mb-10">{d.content}</p>

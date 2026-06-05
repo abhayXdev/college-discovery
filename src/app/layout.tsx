@@ -72,7 +72,7 @@ export default function RootLayout({
 
 function NavLink({ href, children, highlight }: { href: string, children: React.ReactNode, highlight?: boolean }) {
   return (
-    <Link href={href} className={`flex-1 md:flex-none flex items-center justify-center px-6 md:px-8 py-4 md:py-0 no-underline text-sm font-black uppercase border-l-[3px] border-black tracking-widest ${highlight ? "bg-black text-white" : "bg-transparent text-black"}`}>
+    <Link href={href} className={`flex-1 md:flex-none flex items-center justify-center px-6 md:px-8 py-4 md:py-0 no-underline text-sm font-black uppercase border-t-[3px] md:border-t-0 md:border-l-[3px] border-black tracking-widest ${highlight ? "bg-black text-white" : "bg-transparent text-black"}`}>
       {children}
     </Link>
   );

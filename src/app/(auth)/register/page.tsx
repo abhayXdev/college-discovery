@@ -33,7 +33,7 @@ export default function RegisterPage() {
     wrapper: { minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff" },
     card: { width: "100%", maxWidth: "500px", border: "6px solid #000", background: "#fff", position: "relative" as const },
     header: { marginBottom: "40px" },
-    title: { fontSize: "48px", fontWeight: 900, textTransform: "uppercase" as const, lineHeight: 0.8, letterSpacing: "-0.05em" },
+    title: { fontSize: "42px", fontWeight: 900, textTransform: "uppercase" as const, lineHeight: 0.8, letterSpacing: "-0.05em" },
     label: { display: "block", fontSize: "12px", fontWeight: 900, textTransform: "uppercase" as const, marginBottom: "5px" },
     input: { width: "100%", padding: "20px", border: "4px solid #000", fontSize: "18px", fontWeight: 700, marginBottom: "30px", outline: "none", boxSizing: "border-box" as const },
     button: { width: "100%", padding: "20px", background: "#E11D48", color: "#fff", border: "none", fontSize: "20px", fontWeight: 900, textTransform: "uppercase" as const, cursor: "pointer" },

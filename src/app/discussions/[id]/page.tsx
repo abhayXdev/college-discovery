@@ -42,8 +42,8 @@ export default function DiscussionDetailPage({ params }: { params: Promise<{ id:
     }
   };
 
-  if (loading) return <div className="p-20 text-center text-2xl font-black bg-black text-white uppercase">Retrieving_Thread_Context...</div>;
-  if (!thread) return <div className="p-20 text-center text-2xl font-black bg-red-600 text-white border-4 border-black uppercase">Thread_Not_Found</div>;
+  if (loading) return <div className="p-20 text-center text-2xl font-black bg-black text-white uppercase tracking-widest">RETRIEVING_THREAD_CONTEXT...</div>;
+  if (!thread) return <div className="p-20 text-center text-2xl font-black bg-red-600 text-white border-4 border-black uppercase">THREAD_NOT_FOUND</div>;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-10 md:px-10 md:py-20">
@@ -54,12 +54,12 @@ export default function DiscussionDetailPage({ params }: { params: Promise<{ id:
       <div className="border-4 border-black p-8 md:p-16 mb-16 bg-white relative">
         <div className="flex justify-between items-center mb-10">
             <span className="bg-[#FACC15] text-black px-4 py-2 font-black text-xs border-2 border-black uppercase tracking-widest">{thread.college?.name || "GENERAL_FORUM"}</span>
-            <span className="text-gray-400 font-black text-[10px] md:text-xs uppercase tracking-tighter">TIMESTAMP: {new Date(thread.createdAt).toLocaleDateString()}</span>
+            <span className="text-gray-400 font-black text-[10px] md:text-xs uppercase tracking-tighter" suppressHydrationWarning>TIMESTAMP: {new Date(thread.createdAt).toLocaleDateString()}</span>
         </div>
-        <h1 className="text-2xl md:text-6xl font-black uppercase mb-6 leading-tight">{thread.title}</h1>
-        <p className="text-base md:text-2xl font-bold text-gray-700 leading-relaxed mb-10">{thread.content}</p>
+        <h1 className="text-3xl md:text-6xl font-black uppercase mb-6 leading-tight">{thread.title}</h1>
+        <p className="text-lg md:text-2xl font-bold text-gray-700 leading-relaxed mb-10">{thread.content}</p>
         <div className="text-[10px] md:text-sm font-black uppercase tracking-tighter border-t-2 border-black pt-5 text-gray-400">
-            INITIATED_BY: {thread.user.email}
+            INITIATED_BY: {thread.user?.email || "ANONYMOUS"}
         </div>
       </div>
 
@@ -71,8 +71,8 @@ export default function DiscussionDetailPage({ params }: { params: Promise<{ id:
             <div key={a.id} className="border-l-8 border-black p-8 md:p-10 bg-gray-50">
               <p className="text-base md:text-xl font-bold mb-6 text-black">{a.content}</p>
               <div className="text-[10px] md:text-xs font-black text-gray-400 uppercase tracking-widest flex justify-between">
-                <span>RESPONDENT: {a.user.email}</span>
-                <span>{new Date(a.createdAt).toLocaleDateString()}</span>
+                <span>RESPONDENT: {a.user?.email || "USER_ID_MASKED"}</span>
+                <span suppressHydrationWarning>{new Date(a.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
           ))}
