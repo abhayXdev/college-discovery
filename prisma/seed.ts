@@ -176,8 +176,9 @@ async function main() {
   for (const c of colleges) {
     const college = await prisma.college.upsert({
       where: { instituteId: c.instituteId },
-      update: c,
-      create: c,
+      update: { ...c, status: "VERIFIED" },
+      create: { ...c, status: "VERIFIED" },
+
     });
     console.log(`RECORD_SYNC: ${college.name}`);
 

@@ -17,12 +17,19 @@ model User {
   answers       Answer[]
 }
 
+enum DataStatus {
+  VERIFIED
+  IMPORTED
+  DEMO
+}
+
 model College {
   id           String         @id @default(cuid())
   name         String
   city         String
   state        String
   instituteId  String         @unique
+  status       DataStatus     @default(IMPORTED)
   
   rank         Int
   score        Float
