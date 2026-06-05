@@ -3,6 +3,8 @@ import { apiWrapper } from "@/lib/api-wrapper";
 import { CollegeService } from "@/services/collegeService";
 import { predictorSchema } from "@/lib/validation";
 
+export const dynamic = "force-dynamic";
+
 export const GET = apiWrapper(async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
 

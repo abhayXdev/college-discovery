@@ -21,7 +21,7 @@ export async function apiRequest(path: string, options: RequestInit = {}) {
     ...options.headers,
   };
 
-  const response = await fetch(path, { ...options, headers });
+  const response = await fetch(path, { cache: "no-store", ...options, headers });
   
   // Handle non-JSON or empty responses safely
   const contentType = response.headers.get("content-type");

@@ -70,21 +70,50 @@ export class CollegeService {
 
     if (search?.trim()) {
       const term = search.trim();
-      const nameConditions: Prisma.CollegeWhereInput[] = [
-        { name: { contains: term, mode: "insensitive" } },
-        { instituteId: { contains: term, mode: "insensitive" } }
-      ];
-
-      // Add expanded acronym matching for IIT
-      if (term.toLowerCase() === "iit") {
-        nameConditions.push({ name: { contains: "Indian Institute of Technology", mode: "insensitive" } });
+      let expandedTerm = term;
+      
+      const lowerTerm = term.toLowerCase();
+      if (lowerTerm.includes("iit ")) {
+        expandedTerm = lowerTerm.replace("iit ", "Indian Institute of Technology ");
+      } else if (lowerTerm.includes("nit ")) {
+        expandedTerm = lowerTerm.replace("nit ", "National Institute of Technology ");
+      } else if (lowerTerm === "iit") {
+        expandedTerm = "Indian Institute of Technology";
+      } else if (lowerTerm === "nit") {
+        expandedTerm = "National Institute of Technology";
       }
 
-      conditions.push({ OR: nameConditions });
+      const searchTokens = expandedTerm.split(/\s+/);
+      const tokenConditions = searchTokens.map(token => ({
+        OR: [
+          { name: { contains: token, mode: "insensitive" as const } },
+          { city: { contains: token, mode: "insensitive" as const } },
+          { state: { contains: token, mode: "insensitive" as const } },
+          { instituteId: { contains: token, mode: "insensitive" as const } }
+        ]
+      }));
+
+      conditions.push({ AND: tokenConditions });
     }
 
-    if (city?.trim()) conditions.push({ city: { contains: city.trim(), mode: "insensitive" } });
-    if (state?.trim()) conditions.push({ state: { contains: state.trim(), mode: "insensitive" } });
+    if (city?.trim()) {
+      const tokens = city.trim().split(/\s+/);
+      conditions.push({
+        AND: tokens.map(t => ({
+          OR: [
+            { city: { contains: t, mode: "insensitive" as const } },
+            { state: { contains: t, mode: "insensitive" as const } }
+          ]
+        }))
+      });
+    }
+    
+    if (state?.trim()) {
+      const tokens = state.trim().split(/\s+/);
+      conditions.push({
+        AND: tokens.map(t => ({ state: { contains: t, mode: "insensitive" as const } }))
+      });
+    }
     
     const feesFilter: Prisma.FloatFilter = {};
     if (typeof minFees === "number" && minFees > 0) feesFilter.gte = minFees;
@@ -215,6 +244,15 @@ export class CollegeService {
       if (exam) {
         const examClean = exam.toLowerCase();
         const collegeName = college.name.toLowerCase();
+
+        // Engineering exams penalty for non-engineering domains
+        const isEngineeringExam = ["jee", "bitsat", "gate", "met"].some(e => examClean.includes(e));
+        if (isEngineeringExam) {
+          const nonEngKeywords = ["medical", "aiims", "law", "management", "iim ", "iim-", "dental", "hospital", "agriculture", "pharmacy"];
+          if (nonEngKeywords.some(kw => collegeName.includes(kw))) {
+             score -= 100; // Impossible match
+          }
+        }
         
         if (examClean.includes("advanced") && collegeName.includes("iit")) {
           score += 15; // Strong match for IITs via JEE Advanced
@@ -235,7 +273,8 @@ export class CollegeService {
       };
     });
 
-    return results.sort((a, b) => b.matchScore - a.matchScore).slice(0, 10);
+    // Filter out impossible matches (0 score) before returning
+    return results.filter(r => r.matchScore > 0).sort((a, b) => b.matchScore - a.matchScore).slice(0, 10);
   }
 
   static async saveCollege(userId: string, collegeId: string) {
