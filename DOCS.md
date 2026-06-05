@@ -1,8 +1,8 @@
-# 🎓 College Discovery Platform - API Documentation
+#  College Discovery Platform - API Documentation
 
 This document provides a comprehensive guide to the backend architecture and available endpoints for the College Discovery Platform.
 
-## 🏗️ Backend Architecture
+##  Backend Architecture
 
 - **Framework:** Next.js 15+ (App Router)
 - **Database:** PostgreSQL via Prisma ORM
@@ -11,7 +11,7 @@ This document provides a comprehensive guide to the backend architecture and ava
 
 ---
 
-## 📡 Standardized Response Format
+##  Standardized Response Format
 
 All API responses follow a unified "Envelope" format to ensure a predictable developer experience for frontend consumers.
 
@@ -37,7 +37,7 @@ All API responses follow a unified "Envelope" format to ensure a predictable dev
 
 ---
 
-## 🚀 Endpoints
+##  Endpoints
 
 ### 1. Search & Filter Colleges
 `GET /api/colleges`
