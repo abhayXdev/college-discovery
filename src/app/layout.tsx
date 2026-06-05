@@ -1,4 +1,5 @@
 "use client";
+import "./globals.css";
 import Link from "next/link";
 import { authHelper } from "@/lib/auth-helper";
 import { useEffect, useState } from "react";
