@@ -31,7 +31,7 @@ npm run start
 
 ## 2. Architecture Summary
 
-- **Frontend**: Next.js 16 (App Router), TypeScript, React 19, Vanilla CSS.
+- **Frontend**: Next.js 15 (App Router), TypeScript, React 19, Vanilla CSS.
 - **Backend**: Next.js Route Handlers with Service-Oriented Logic.
 - **ORM**: Prisma 7.8 with `@prisma/adapter-pg` for advanced connection pooling.
 - **Auth Flow**: 
@@ -59,6 +59,12 @@ npm run start
 - `GET /api/user/saved`: List user's watchlist.
 - `POST /api/user/saved`: Add college to watchlist.
 
+### Discussions (Community)
+- `GET /api/discussions`: List all threads.
+- `GET /api/discussions/[id]`: View thread and answers.
+- `POST /api/discussions/create`: Start a new thread.
+- `POST /api/discussions/answer`: Post a response.
+
 ---
 
 ## 4. 5-Minute Demo Walkthrough
@@ -67,8 +73,8 @@ npm run start
 2. **Authentication**: Log in and watch the Navigation bar update from "Login" to "Watchlist" without a page refresh.
 3. **Discovery**: Type "Indian" in the search box; results filter in real-time. Apply a "Sort by Fees" filter to see Tier-2 institutions.
 4. **Transparency**: Hover over the `DEMO_DATA` badge on a result to see the provenance label.
-5. **Comparison**: Click "Add to Queue" on 3 colleges; click "RUN_ANALYTICS" to see the side-by-side technical breakdown.
-6. **Prediction**: Navigate to "Predictor," enter a budget and NIRF score, and receive a list of matching institutions with `matchScore`.
+5. **Comparison**: Click "Add Queue" on 3 colleges; click "RUN_ANALYTICS" to see the side-by-side technical breakdown.
+6. **Community**: Navigate to "Community," click a thread, and post an answer. Refresh to see it persisted.
 7. **Persistence**: Refresh the page to demonstrate that the session and comparison queue remain active.
 
 ---
@@ -76,11 +82,11 @@ npm run start
 ## 5. Project Submission Highlights
 
 ### Technical Challenges Solved
-- **Connection Exhaustion**: Solved the `ECONNRESET` issue by architecting a Prisma Singleton pattern, crucial for Next.js serverless and development environments.
-- **Reactive UI Synchronization**: Overcame the static nature of Next.js Layouts by implementing a custom event-driven auth state system.
-- **Data Integrity**: Developed a safe merging algorithm to deduplicate institutional records while preserving relational user data.
+- **Connection Pooling**: Implemented the Prisma Singleton pattern to prevent `ECONNRESET` errors in worker-based environments.
+- **Hydration Resilience**: Resolved React 19 hydration crashes caused by non-deterministic server-side date rendering.
+- **Mobile Brutalism**: Overhauled rigid desktop-only CSS to a responsive Tailwind-based layout supporting devices down to 320px.
 
 ### Key Engineering Decisions
-- **Service-Transport Separation**: Logic is isolated from API routes, enabling easy unit testing and validation.
-- **Data Status Strategy**: Implemented a row-level `DataStatus` enum to allow prototype demonstration without misleading users about data provenance.
-- **Fail-Fast Security**: Enforced environment-level validation for sensitive credentials to prevent insecure operational states.
+- **Service-Transport Separation**: Logic is isolated from API routes, enabling easy validation and maintenance.
+- **Data Status Strategy**: Implemented a row-level `DataStatus` enum to allow prototype demonstration while maintaining 100% data transparency.
+- **Fail-Fast Security**: Enforced environment-level validation for sensitive credentials.
