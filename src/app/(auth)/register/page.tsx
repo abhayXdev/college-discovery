@@ -3,11 +3,14 @@ import { useState } from "react";
 import { apiRequest } from "@/lib/api-client";
 import Link from "next/link";
 
+import { useRouter } from "next/navigation";
+
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,7 +21,7 @@ export default function RegisterPage() {
         method: "POST",
         body: JSON.stringify({ email, password }),
       });
-      window.location.href = "/login";
+      router.push("/login");
     } catch (err: any) {
       setError(err.message);
     } finally {

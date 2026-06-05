@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { authHelper } from "@/lib/auth-helper";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function RootLayout({
   children,
@@ -9,10 +10,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const [isAuth, setIsAuth] = useState(false);
+  const router = useRouter();
+
+  const checkAuth = () => {
+    setIsAuth(authHelper.isAuthenticated());
+  };
 
   useEffect(() => {
-    setIsAuth(authHelper.isAuthenticated());
+    checkAuth();
+    window.addEventListener("auth-change", checkAuth);
+    window.addEventListener("storage", checkAuth);
+    return () => {
+      window.removeEventListener("auth-change", checkAuth);
+      window.removeEventListener("storage", checkAuth);
+    };
   }, []);
+
+  const handleLogout = () => {
+    authHelper.logout();
+    router.push("/login");
+  };
 
   return (
     <html lang="en">
@@ -50,7 +67,7 @@ export default function RootLayout({
               <>
                 <NavLink href="/saved">Watchlist</NavLink>
                 <button
-                  onClick={() => authHelper.logout()}
+                  onClick={handleLogout}
                   style={{
                     height: "100%",
                     border: "none",
